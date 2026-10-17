@@ -1,0 +1,240 @@
+/* --- CONFIGURAÇÕES GERAIS E PREVENÇÃO DE QUEBRA DE LAYOUT --- */
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+    overflow-x: hidden !important;
+    max-width: 100vw;
+}
+
+/* Ensure navbar-end aligns to the right on large screens even if other rules interfere */
+@media (min-width: 992px) {
+    .navbar-end {
+        margin-left: auto !important;
+        justify-content: flex-end !important;
+    }
+}
+
+/* Force navbar-end to align right on all sizes and prevent inner elements from stretching */
+.navbar-end {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    gap: 0.5rem;
+}
+
+.navbar-end .navbar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body {
+    margin-bottom: 60px;
+    overflow-x: hidden !important;
+    max-width: 100vw;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+/* --- ESTILOS DE INTERFACE E TEMA --- */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+#theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: inherit;
+}
+
+    #theme-toggle .bi {
+        font-size: 1.35rem;
+        line-height: 1;
+        opacity: 1;
+        pointer-events: none;
+    }
+
+/* Make only the central switch clickable: disable pointer events for the outer button
+   and allow pointer events only on the .theme-switch element. This prevents clicks on
+   the sun/moon icons from toggling the theme. */
+#theme-toggle {
+    pointer-events: none; /* outer button won't receive pointer events */
+}
+
+#theme-toggle .theme-switch {
+    pointer-events: auto; /* only the center switch is interactive */
+    cursor: pointer;
+}
+
+.theme-switch {
+    width: 56px;
+    height: 28px;
+    background: #e6e6e6;
+    border-radius: 999px;
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+}
+
+    .theme-switch::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        background: #1f2937;
+        border-radius: 50%;
+        transition: transform 0.22s cubic-bezier(.4,0,.2,1), background 0.22s ease;
+    }
+
+[data-bs-theme="dark"] .theme-switch {
+    background: #4b5563;
+}
+
+    [data-bs-theme="dark"] .theme-switch::after {
+        transform: translateX(28px);
+        background: #fff;
+    }
+
+.notif-badge {
+    transform: translate(-65%, -50%);
+}
+
+/* --- SINCRONIZAÇÃO DE LAYOUT (LG = 992px) --- */
+@media (min-width: 992px) {
+    .navbar {
+        margin-left: 240px;
+        width: calc(100% - 240px);
+    }
+
+    .footer {
+        margin-left: 240px;
+        width: calc(100% - 240px);
+    }
+
+    .app-main {
+        margin-left: 240px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .footer {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .app-main {
+        margin-left: 0 !important;
+    }
+}
+
+/* --- LOGÓTIPOS --- */
+.logo-light {
+    display: block !important;
+}
+
+.logo-dark {
+    display: none !important;
+}
+
+[data-bs-theme="dark"] .logo-light {
+    display: none !important;
+}
+
+[data-bs-theme="dark"] .logo-dark {
+    display: block !important;
+}
+
+.sidebar-header {
+    padding: 0.5rem 0.75rem;
+    overflow: hidden;
+}
+
+    .sidebar-header .navbar-brand {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .sidebar-header .navbar-logo {
+        display: block;
+        max-height: 36px;
+        height: 36px;
+        width: auto;
+        object-fit: contain;
+    }
+
+/* --- BOTÃO SCROLL TO TOP --- */
+#btn-back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: none;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease-in-out;
+    opacity: 0.7;
+    background-color: var(--bs-primary);
+    color: white;
+    border: none;
+}
+
+    #btn-back-to-top:hover {
+        opacity: 1;
+        transform: translateY(-4px);
+        background-color: #609b8a;
+        color: white;
+        box-shadow: 0 6px 12px rgba(120, 194, 173, 0.4) !important;
+    }
+
+/* --- BANNER PRINCIPAL (HERO) --- */
+.hero-banner {
+    background-image: url('../images/fundocartao.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.nav-separator {
+    height: 1px;
+    background-color: var(--bs-border-color);
+    margin-left: 1rem;
+    margin-right: 1rem;
+    list-style: none;
+}
+
+.checkbox-correcao {
+    border: 1.5px solid var(--bs-secondary-color);
+    width: 1.1em;
+    height: 1.1em;
+}
+
+.checkbox-correcao:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.checkbox-correcao:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .25);
+}

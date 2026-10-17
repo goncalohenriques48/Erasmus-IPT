@@ -1,0 +1,459 @@
+@model appErasmus.Models.Candidatura
+
+@{
+    ViewData["Title"] = "Avaliar Candidatura";
+
+    // --- MAPEAMENTO DINÂMICO PARA O PAINEL DE DECISÃO (GRI) ---
+    string classeIcone = "bi-hourglass-split";
+    string classeTexto = "text-warning";
+    string descricaoEstado = "A candidatura encontra-se em análise documental.";
+    string estadoTexto = Model.EstadoCandidatura.ToString();
+    var categoriasDocumento = ViewBag.CategoriasDocumento as List<appErasmus.Models.CategoriaDocumento> ?? new List<appErasmus.Models.CategoriaDocumento>();
+
+    switch (Model.EstadoCandidatura) {
+        case appErasmus.Models.EnumEstadoCandidatura.EmConstrucao:
+            classeIcone = "bi-pencil-square";
+            classeTexto = "text-secondary";
+            estadoTexto = "Rascunho";
+            descricaoEstado = "O aluno ainda se encontra a preencher a candidatura.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.Submetida:
+            classeIcone = "bi-person-gear";
+            classeTexto = "text-warning";
+            estadoTexto = "Aguardar Coordenador";
+            descricaoEstado = "A candidatura aguarda validação académica do Coordenador.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI:
+            classeIcone = "bi-search";
+            classeTexto = "text-warning";
+            estadoTexto = "Em Análise (GRI)";
+            descricaoEstado = "A candidatura aguarda validação regulamentar e verificação de financiamento/documentação pelo GRI.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.Aceite:
+            classeIcone = "bi-airplane";
+            classeTexto = "text-success";
+            estadoTexto = "Em Mobilidade";
+            descricaoEstado = "Processo de mobilidade validado com sucesso. O aluno encontra-se aprovado/em mobilidade.";
+            break;
+        // MAPEAMENTO PARA O ESTADO DE PÓS-MOBILIDADE ---
+        case appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI:
+            classeIcone = "bi-box-seam";
+            classeTexto = "text-info";
+            estadoTexto = "Pós-Mobilidade (Em Análise)";
+            descricaoEstado = "O aluno submeteu a documentação de regresso e aguarda a validação final para fecho do processo.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.Finalizado:
+            classeIcone = "bi-check-circle-fill";
+            classeTexto = "text-success";
+            estadoTexto = "Processo Finalizado";
+            descricaoEstado = "Todo o processo administrativo e de mobilidade foi concluído e encerrado com sucesso.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao:
+            classeIcone = "bi-arrow-counterclockwise";
+            classeTexto = "text-info";
+            estadoTexto = "Devolvida para Correção";
+            descricaoEstado = "A candidatura foi devolvida ao aluno para proceder a correções.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador:
+        case appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite:
+            classeIcone = "bi-x-circle-fill";
+            classeTexto = "text-danger";
+            estadoTexto = "Processo Negado";
+            descricaoEstado = "Esta candidatura foi formalmente recusada e encerrada.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.Desistencia:
+            classeIcone = "bi-dash-circle-fill";
+            classeTexto = "text-muted";
+            estadoTexto = "Desistência";
+            descricaoEstado = "O aluno desistiu formalmente deste processo.";
+            break;
+    }
+}
+
+<div class="container-fluid pt-4 pb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-primary mb-0"><i class="bi bi-file-earmark-person me-2"></i>Candidatura de @Model.Aluno.NomeCompleto</h2>
+            <p class="text-body-secondary mb-0">Avaliação de Candidatura de Mobilidade - GRI</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill shadow-sm"><i class="bi bi-arrow-left me-1"></i> Voltar à Lista</a>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- COLUNA DA ESQUERDA (DADOS PRINCIPAIS) -->
+        <div class="col-lg-8">
+
+            <!-- IDENTIFICAÇÃO E DESTINO -->
+            <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-primary"><i class="bi bi-person-badge me-2"></i>Identificação e Destino</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Número de Aluno</div>
+                        <div class="col-sm-8 text-body">@Model.Aluno.NumeroAluno</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Email de Contacto</div>
+                        <div class="col-sm-8"><a href="mailto:@Model.Aluno.Email">@Model.Aluno.Email</a></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Ano / Semestre</div>
+                        <div class="col-sm-8 text-body">@Model.AnoLetivo (@Model.Semestre)</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Curso</div>
+                        <div class="col-sm-8 text-body">
+                            @Model.Curso.CodigoCurso - @Model.Curso.NomePTCurso
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Escola</div>
+                        <div class="col-sm-8 text-body">@Model.Curso.Escola.Nome</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Grau</div>
+                        <div class="col-sm-8 text-body">@Model.Curso.GrauCurso.Nome</div>
+                    </div>
+                    <hr class="opacity-10" />
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Universidades de Destino</div>
+                        <div class="col-sm-8 text-body">
+                            @if (Model.CandidaturasUniversidades != null && Model.CandidaturasUniversidades.Any()) {
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach (var uniRelacao in Model.CandidaturasUniversidades.OrderBy(cu => cu.Preferencia)) {
+                                        <div>
+                                            <span class="badge bg-secondary rounded-pill me-2">@(uniRelacao.Preferencia)ª Opção</span>
+                                            @if (!string.IsNullOrWhiteSpace(uniRelacao.OutraUniversidade)) {
+                                                <span class="fw-semibold">@uniRelacao.OutraUniversidade</span> <span class="text-body-secondary small fw-normal">(Especificada Manualmente)</span>
+                                            }
+                                            else {
+                                                <span class="fw-semibold">@uniRelacao.Universidade?.Nome</span> <span class="text-body-secondary small fw-normal">(@uniRelacao.UniversidadeFK)</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else {
+                                <span class="text-danger fst-italic">Nenhuma universidade selecionada</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPETÊNCIAS LINGUÍSTICAS -->
+            <div class="card border-0 shadow-sm bg-body-tertiary mb-4">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-primary"><i class="bi bi-translate me-2"></i>Competências Linguísticas</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Linguas != null && Model.Linguas.Any()) {
+                        <ul class="list-group list-group-flush bg-transparent">
+                            @foreach (var lingua in Model.Linguas) {
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent text-body border-secondary border-opacity-10">
+                                    <span class="fw-medium">@lingua.Lingua</span>
+                                    <span class="badge bg-primary rounded-pill">Nível @lingua.Nivel</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else {
+                        <p class="text-body-secondary mb-0"><i class="bi bi-info-circle me-1"></i> O aluno não declarou competências linguísticas.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA DA DIREITA (INVERTIDA: PAINEL -> OBSERVAÇÕES -> DADOS FINANCEIROS) -->
+        <div class="col-lg-4">
+
+            <!-- 1. PAINEL DE DECISÃO -->
+            <div class="card border-0 shadow-sm bg-body-tertiary mb-4">
+                <div class="card-body text-center p-4">
+                    <h6 class="fw-bold text-uppercase text-body-secondary mb-3" style="font-size: 0.85rem; letter-spacing: 0.5px;">Painel de Decisão</h6>
+
+                    <div class="@classeTexto display-4 mb-2">
+                        <i class="bi @classeIcone"></i>
+                    </div>
+                    <h5 class="@classeTexto fw-bold mb-2">@estadoTexto</h5>
+                    <p class="text-body-secondary small mb-0">@descricaoEstado</p>
+
+                    @if (TempData["MensagemSucesso"] != null) {
+                        <div class="alert alert-success py-2 small fw-bold mt-3">
+                            <i class="bi bi-check-circle me-1"></i> @TempData["MensagemSucesso"]
+                        </div>
+                    }
+
+                    <hr class="opacity-10" />
+
+                    @if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI) {
+                        <!-- DECISÃO FASE INICIAL: APROVAÇÃO -->
+                        <form asp-controller="GRI" asp-action="AlterarEstado" method="post" class="mb-3">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" name="acao" value="AprovarGRI" class="btn btn-success w-100 shadow-sm fw-bold py-2">
+                                <i class="bi bi-check-lg me-2"></i>Aprovar Candidatura
+                            </button>
+                        </form>
+
+                        <form asp-controller="GRI" asp-action="AlterarEstado" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="acao" value="RejeitarGRI" />
+
+                            <div class="text-start mb-3">
+                                <label class="form-label fw-bold text-danger small">
+                                    Motivo da rejeição/devolução
+                                </label>
+                                <textarea name="motivoRejeicao" class="form-control" rows="4" maxlength="1000" required placeholder="Descreva detalhadamente o motivo da decisão..."></textarea>
+                                <div class="form-text text-body-secondary" style="font-size: 0.75rem;">
+                                    Este texto será enviado e ficará visível para o aluno.
+                                </div>
+                            </div>
+
+                            <div class="form-check text-start mb-3">
+                                <input class="form-check-input checkbox-correcao" type="checkbox" name="permiteCorrecao" value="true" id="permiteCorrecaoGRI" @(Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI ? "checked disabled" : "") />
+                                @if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI) {
+                                    <input type="hidden" name="permiteCorrecao" value="true" />
+                                }
+                                <label class="form-check-label small text-body" for="permiteCorrecaoGRI">
+                                    Permitir que o aluno corrija e volte a submeter
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-outline-danger w-100 shadow-sm" onclick="return confirm('Confirma esta decisão de rejeição/devolução?');">
+                                <i class="bi bi-x-lg me-2"></i>Rejeitar / Devolver
+                            </button>
+                        </form>
+                    } else if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI) {
+                        <!-- DECISÃO FASE FINAL (PÓS-MOBILIDADE) -->
+                        <form asp-controller="GRI" asp-action="AlterarEstado" method="post" class="mb-3">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" name="acao" value="FinalizarProcesso" class="btn btn-success w-100 shadow-sm fw-bold py-2" onclick="return confirm('Confirma que os documentos de regresso estão válidos e deseja fechar definitivamente este processo?');">
+                                <i class="bi bi-check-all me-2"></i>Validar e Finalizar Processo
+                            </button>
+                        </form>
+
+                        <!-- Formulário mantido para permitir devolver documentos de regresso se vierem errados -->
+                        <form asp-controller="GRI" asp-action="AlterarEstado" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="acao" value="RejeitarGRI" />
+
+                            <div class="text-start mb-3">
+                                <label class="form-label fw-bold text-danger small">
+                                    Motivo da devolução
+                                </label>
+                                <textarea name="motivoRejeicao" class="form-control" rows="4" maxlength="1000" required placeholder="Ex: Transcrição de notas carece de assinatura..."></textarea>
+                            </div>
+
+                            <div class="form-check text-start mb-3">
+                                <!-- Pre-selecionado por padrão pois na fase final é comum ser apenas uma correção de documento -->
+                                <input class="form-check-input" type="checkbox" name="permiteCorrecao" value="true" id="permiteCorrecaoGRI_Final" checked disabled />
+                                <input type="hidden" name="permiteCorrecao" value="true" />
+                                <label class="form-check-label small text-body" for="permiteCorrecaoGRI_Final">
+                                    Permitir que o aluno corrija e volte a submeter
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-outline-danger w-100 shadow-sm" onclick="return confirm('Confirma a devolução destes documentos?');">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>Devolver para Correção
+                            </button>
+                        </form>
+                    } else if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao) {
+                        <div class="alert alert-info py-2 small fw-bold mb-0">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> A candidatura foi devolvida ao aluno para correção.
+                        </div>
+                    } else if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Aceite ||
+                             Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador ||
+                             Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite ||
+                             Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Desistencia ||
+                             Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Finalizado) {
+                        <div class="alert alert-secondary py-2 small fw-bold mb-0 text-body-secondary bg-transparent border">
+                            <i class="bi bi-lock-fill me-1"></i> O processo está fechado/concluído e não permite alterações.
+                        </div>
+                    } else {
+                        <div class="alert alert-secondary py-2 small fw-bold mb-0 text-body-secondary bg-transparent border">
+                            <i class="bi bi-hourglass-split me-1"></i> A candidatura não se encontra em fase de avaliação pelo GRI.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- 2. OBSERVAÇÕES DA DECISÃO -->
+            @if (!string.IsNullOrWhiteSpace(Model.MotivoRejeicao)) {
+                <div class="card border-0 shadow-sm mb-4 border-start border-4 border-warning bg-body-tertiary">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-body-secondary text-uppercase mb-3">
+                            <i class="bi bi-chat-left-text me-2"></i>Observações da Decisão
+                        </h6>
+                        <p class="mb-0 text-body">
+                            @Model.MotivoRejeicao
+                        </p>
+                        @if (Model.PermiteCorrecao) {
+                            <div class="alert alert-info py-2 mt-3 mb-0 small">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Foi permitido ao aluno corrigir.
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- 3. DADOS FINANCEIROS -->
+            <div class="card border-0 shadow-sm mb-4 border-start border-4 @(Model.Bolseiro ? "border-info" : "border-secondary") bg-body-tertiary">
+                <div class="card-body">
+                    <h6 class="fw-bold text-body-secondary text-uppercase mb-3"><i class="bi bi-bank me-2"></i>Dados Financeiros</h6>
+
+                    <p class="mb-1 fw-bold text-body-secondary small">Estatuto de Bolseiro:</p>
+                    @if (Model.Bolseiro) {
+                        <div class="alert alert-info py-2 mb-3 shadow-sm border-0">
+                            <i class="bi bi-info-circle-fill me-2"></i> <strong class="text-dark">Estudante Bolseiro</strong>
+                        </div>
+                    } else {
+                        <div class="alert alert-secondary py-2 mb-3 bg-transparent border text-body-secondary">
+                            <i class="bi bi-info-circle me-2"></i> Não é Bolseiro
+                        </div>
+                    }
+
+                    <p class="mb-1 fw-bold text-body-secondary small mt-3">IBAN Declarado:</p>
+                    <p class="font-monospace bg-body-secondary text-body p-2 rounded border border-secondary border-opacity-10 mb-0 text-center small text-break">@Model.IBAN</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- COLUNA INFERIOR COMPLETA (DOCUMENTOS DA CANDIDATURA) -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-primary">
+                        <i class="bi bi-paperclip me-2"></i>Documentos da Candidatura
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    @if (categoriasDocumento.Any()) {
+                        <form asp-controller="GRI"
+                              asp-action="UploadDocumento"
+                              method="post"
+                              enctype="multipart/form-data"
+                              class="border rounded-3 p-3 mb-4 bg-body">
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" name="candidaturaId" value="@Model.Id" />
+
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">Tipo de documento</label>
+                                    <select name="categoriaDocumento" class="form-select form-select-sm" required>
+                                        <option value="">Selecionar categoria...</option>
+                                        @foreach (var categoria in categoriasDocumento)
+                                        {
+                                            <option value="@categoria.Nome">@categoria.Nome</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small">Descrição</label>
+                                    <input type="text"
+                                           name="descricaoDocumento"
+                                           class="form-control form-control-sm"
+                                           maxlength="150"
+                                           placeholder="Opcional" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold small">Ficheiro</label>
+                                    <input type="file"
+                                           name="ficheiroDocumento"
+                                           class="form-control form-control-sm"
+                                           accept=".pdf,.jpg,.jpeg,.png,.docx"
+                                           required />
+                                </div>
+
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill">
+                                        <i class="bi bi-upload me-1"></i> Adicionar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    } else {
+                        <div class="alert alert-light border small mb-4">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Não existem novos tipos de documento disponíveis para adicionar. Usa a opção Substituir nos documentos existentes.
+                        </div>
+                    }
+                    @if (Model.Documentos != null && Model.Documentos.Any()) {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 bg-transparent">
+                                <thead>
+                                    <tr class="text-body-secondary small border-bottom">
+                                        <th style="width: 20%;">Tipo</th>
+                                        <th style="width: 30%;">Ficheiro</th>
+                                        <th style="width: 35%;">Auditoria</th>
+                                        <th class="text-end" style="width: 15%;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-body">
+                                    @foreach (var documento in Model.Documentos.OrderByDescending(d => d.DataCriacao)) {
+                                        <tr class="border-bottom border-secondary border-opacity-10">
+                                            <td>
+                                                <div class="fw-semibold text-body">@documento.CategoriaFK</div>
+                                                @if (!string.IsNullOrWhiteSpace(documento.DescricaoDocumento)) {
+                                                    <div class="text-body-secondary small mt-1" style="font-size: 0.8rem;">
+                                                        @documento.DescricaoDocumento
+                                                    </div>
+                                                }
+                                            </td>
+
+                                            <td class="text-break text-body-secondary small">@documento.NomeOriginal</td>
+
+                                            <td class="small text-body-secondary" style="font-size: 0.8rem;">
+                                                <div><strong>Submetido por:</strong> @(documento.CreatedBy?.NomeCompleto ?? "Não definido")</div>
+                                                <div><strong>Em:</strong> @documento.DataCriacao.ToString("dd/MM/yyyy HH:mm")</div> 
+
+                                                @if (documento.DataAtualizacao.HasValue && (documento.DataAtualizacao.Value - documento.DataCriacao).TotalSeconds > 3) {
+                                                    @*Valida se DataAtualizacao e a DataCriacao são iguais, dando tolerancia de 3 segundos, pois é utilizado o Time.now() *@
+                                                    <div class="mt-1"><strong>Atualizado por:</strong> @(documento.UpdatedBy?.NomeCompleto ?? documento.CreatedBy?.NomeCompleto ?? "Não definido")</div>
+                                                    <div><strong>Em:</strong> @(documento.DataAtualizacao.HasValue ? documento.DataAtualizacao.Value.ToString("dd/MM/yyyy HH:mm") : documento.DataCriacao.ToString("dd/MM/yyyy HH:mm"))</div>
+                                                }
+                                            </td>
+
+                                            <td class="text-end">
+                                                <a asp-controller="GRI" asp-action="DownloadDocumento" asp-route-documentoId="@documento.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm">
+                                                    <i class="bi bi-download me-1"></i> Download
+                                                </a>
+                                                <form asp-controller="GRI" asp-action="SubstituirDocumento" method="post" enctype="multipart/form-data" class="mt-2">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden" name="documentoId" value="@documento.Id" />
+
+                                                    <input type="file" name="ficheiroDocumento" class="form-control form-control-sm mb-2" accept=".pdf,.jpg,.jpeg,.png,.docx" required />
+
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3 shadow-sm" onclick="return confirm('Confirma a substituição deste documento? O ficheiro anterior não será apagado do servidor.');">
+                                                        <i class="bi bi-arrow-repeat me-1"></i> Substituir
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    } else {
+                        <div class="alert alert-secondary bg-transparent border border-secondary border-opacity-10 mb-0 text-body-secondary">
+                            <i class="bi bi-info-circle me-2"></i> Ainda não foram adicionados documentos a esta candidatura.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

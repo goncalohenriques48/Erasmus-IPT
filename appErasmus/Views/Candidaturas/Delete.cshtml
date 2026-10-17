@@ -1,0 +1,92 @@
+@model appErasmus.Models.Candidatura
+
+@{
+    ViewData["Title"] = "Eliminar Candidatura";
+}
+
+<div class="container pt-4 pb-5">
+    
+    <div class="d-flex align-items-center mb-4 p-3 border border-danger rounded bg-danger bg-opacity-10 shadow-sm">
+        <div class="bg-danger text-white rounded p-3 me-3">
+            <i class="bi bi-exclamation-triangle fs-3"></i>
+        </div>
+        <div>
+            <h1 class="h3 fw-bold text-danger mb-1">Eliminar Candidatura</h1>
+            <p class="text-muted mb-0">Tens a certeza absoluta de que pretendes apagar esta candidatura? Esta ação é irreversível.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white p-3 fw-bold">
+            <i class="bi bi-file-earmark-person me-2"></i>Resumo do Pedido de Mobilidade
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3 text-break">
+                
+                <div class="col-sm-3 fw-bold text-muted">Aluno Candidato:</div>
+                <div class="col-sm-9 fw-bold text-primary">
+                    @Model.Aluno?.NomeCompleto
+                </div>
+                
+                <hr class="my-2 opacity-25" />
+
+                <div class="col-sm-3 fw-bold text-muted">Ano Letivo:</div>
+                <div class="col-sm-9">@Model.AnoLetivo</div>
+
+                <hr class="my-2 opacity-25" />
+
+                <div class="col-sm-3 fw-bold text-muted">Período:</div>
+                <div class="col-sm-9">
+                    @((int)Model.Semestre == 1 ? "1º Semestre (Inverno)" : (int)Model.Semestre == 2 ? "2º Semestre (Verão)" : "Ano Inteiro")
+                </div>
+
+                <hr class="my-2 opacity-25" />
+
+                <div class="col-sm-3 fw-bold text-muted">Data de Submissão:</div>
+                <div class="col-sm-9">@Model.DataSubmissao.ToString("dd/MM/yyyy HH:mm")</div>
+
+                <hr class="my-2 opacity-25" />
+
+                <div class="col-sm-3 fw-bold text-muted">IBAN Registado:</div>
+                <div class="col-sm-9 font-monospace">@Model.IBAN</div>
+
+                <hr class="my-2 opacity-25" />
+
+                <div class="col-sm-3 fw-bold text-muted">Destinos Escolhidos:</div>
+                <div class="col-sm-9">
+                    @if (Model.CandidaturasUniversidades != null && Model.CandidaturasUniversidades.Any())
+                    {
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var uniRelacao in Model.CandidaturasUniversidades.OrderBy(u => u.Preferencia))
+                            {
+                                <div>
+                                    <span class="badge bg-primary rounded-pill me-2">@(uniRelacao.Preferencia)ª Opção</span>
+                                    <span class="fw-semibold text-dark">@uniRelacao.Universidade?.Nome</span> 
+                                    <span class="text-muted small">(@uniRelacao.UniversidadeFK)</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="text-danger italic">Nenhum destino associado.</span>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="Delete" class="d-flex gap-4 align-items-center mt-5">
+        <input type="hidden" asp-for="Id" />
+        
+        <button type="submit" class="btn btn-danger btn-lg fw-bold px-4 shadow-sm me-2">
+            <i class="bi bi-trash3 me-2"></i> Confirmar Eliminação
+        </button>
+        
+        <a asp-action="Index" class="btn btn-light btn-lg border px-4 shadow-sm text-secondary">
+            Cancelar e Voltar à Lista
+        </a>
+    </form>
+
+</div>

@@ -1,0 +1,74 @@
+﻿@model IEnumerable<appErasmus.ViewComponents.AlertaNotificacao>
+
+<style>
+    
+    .notificacao-item:hover,
+    .notificacao-item:focus {
+        background-color: rgba(128, 128, 128, 0.15) !important;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    /* Força o clique a assumir a cor de fundo original (verde) */
+    .notificacao-item:active {
+        background-color: var(--bs-dropdown-link-active-bg, var(--bs-primary)) !important;
+    }
+
+        /* Garante que as letras e ícones passam a branco durante o milissegundo do clique para contraste perfeito */
+        .notificacao-item:active .text-body,
+        .notificacao-item:active i {
+            color: #ffffff !important;
+        }
+
+    /*  MOBILE  */
+    @@media (max-width: 767.98px) {
+        .dropdown-menu[aria-labelledby="dropdownNotification"] {
+            /* Anula as posições automáticas do Bootstrap */
+            position: absolute !important;
+            transform: none !important;
+            inset: auto !important;
+            top: 100% !important;
+            /* Centra os 290px da caixa perfeitamente por baixo do sino */
+            left: 50% !important;
+            margin-left: -145px !important;
+        }
+    }
+</style>
+
+<div class="dropdown me-3 d-flex align-items-center">
+    <button class="btn btn-link text-white p-1 border-0 text-decoration-none d-inline-flex align-items-center" type="button" id="dropdownNotification" data-bs-toggle="dropdown" aria-expanded="false">
+
+        <span class="position-relative d-inline-block">
+            <i class="bi bi-bell fs-4"></i>
+
+            @if (Model.Any()) {
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-2 border-white" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
+                    @Model.Count()
+                </span>
+            }
+        </span>
+
+    </button>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow border-secondary border-opacity-10 bg-body-tertiary py-2 mt-2" aria-labelledby="dropdownNotification" style="width: 290px; font-size: 0.9rem;">
+        <li class="px-3 py-1 border-bottom border-secondary border-opacity-10">
+            <span class="fw-bold text-primary">Notificações</span>
+        </li>
+
+        @if (!Model.Any()) {
+            <li class="px-3 py-3 text-center text-body-secondary small">
+                <i class="bi bi-bell-slash d-block mb-1 fs-5 opacity-50"></i>
+                Não tens nenhuma notificação.
+            </li>
+        }
+        else {
+            @foreach (var alerta in Model) {
+                <li>
+                    <a class="dropdown-item notificacao-item d-flex align-items-center py-2 px-3 text-wrap" href="@Url.Content(alerta.Link)">
+                        <i class="bi @alerta.Icone @alerta.CorText fs-5 me-3"></i>
+                        <div class="text-body text-break" style="line-height: 1.3;">@alerta.Mensagem</div>
+                    </a>
+                </li>
+            }
+        }
+    </ul>
+</div>

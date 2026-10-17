@@ -1,0 +1,156 @@
+@model IEnumerable<appErasmus.Models.Candidatura>
+
+@{
+    ViewData["Title"] = "As Minhas Candidaturas";
+}
+
+<div class="container-fluid pt-3 pb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary text-white rounded p-3 me-3 shadow-sm">
+                <i class="bi bi-card-list" style="font-size: 2rem;"></i>
+            </div>
+            <div>
+                <h1 class="display-6 fw-bold text-primary mb-0">Minhas Candidaturas</h1>
+                <p class="text-body-secondary mb-0">
+                    Consulta o estado do processo de mobilidade.
+                </p>
+            </div>
+        </div>
+        
+        <div>
+            @if (ViewBag.CanCreateNewCandidatura == true)
+            {
+                <a class="btn btn-primary shadow-sm fw-bold rounded-pill px-4" asp-action="Create">
+                    <i class="bi bi-plus-lg me-2"></i> Nova Candidatura
+                </a>
+            } 
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+        <div class="card-body p-4">
+            
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-rocket text-primary opacity-75" style="font-size: 5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold text-body mb-3">
+                        Ainda não existe nenhuma candidatura iniciada.
+                    </h3>
+                    <p class="text-body-secondary fs-5 mb-4">O teu world não tem fronteiras. Prepara-te para a experiência da tua vida!</p>
+                    
+                    @if (ViewBag.CanCreateNewCandidatura == true)
+                    {
+                        <a class="btn btn-primary btn-lg shadow-sm rounded-pill px-5 fw-bold transition-hover" asp-action="Create">
+                            <i class="bi bi-plus-circle me-2"></i> Fazer a minha Candidatura
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary btn-lg shadow-sm rounded-pill px-5 fw-bold transition-hover disabled" asp-action="Create">
+                            <i class="bi bi-plus-circle me-2"></i> Já existe uma candidatura ativa
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 bg-transparent">
+                        <thead>
+                            <tr class="text-body-secondary small border-bottom">
+                                <th class="fw-bold py-3">Ano Letivo</th>
+                                <th class="fw-bold">Semestre</th>
+                                <th class="fw-bold">Data de Submissão</th>
+                                <th class="fw-bold">Estado</th>
+                                <th class="fw-bold text-end pe-4">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr class="border-bottom border-secondary border-opacity-10">
+                                    <td class="fw-bold text-primary py-3">@item.AnoLetivo</td>
+                                    <td class="text-body">
+                                        @((int)item.Semestre == 1 ? "1º Semestre" : (int)item.Semestre == 2 ? "2º Semestre" : "Ano Inteiro")
+                                    </td>
+                                    <td class="text-body-secondary small">@item.DataSubmissao.ToString("dd/MM/yyyy 'às' HH:mm")</td>
+                                    <td>
+                                        @{
+                                            var badgeClass = item.EstadoCandidatura switch
+                                            {
+                                                appErasmus.Models.EnumEstadoCandidatura.Desistencia => "bg-secondary text-white opacity-75",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmConstrucao => "bg-body-secondary text-body border border-secondary border-opacity-25",
+                                                appErasmus.Models.EnumEstadoCandidatura.Submetida => "bg-warning text-dark",
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador => "bg-danger text-white",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI => "bg-info text-dark",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI => "bg-info text-dark",
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite => "bg-danger text-white",
+                                                appErasmus.Models.EnumEstadoCandidatura.Aceite => "bg-success text-white",
+                                                appErasmus.Models.EnumEstadoCandidatura.Finalizado => "bg-success text-white",
+                                                appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao => "bg-info text-dark",
+                                                _ => "bg-secondary"
+                                            };
+
+                                            var estadoDescritivo = item.EstadoCandidatura switch
+                                            {
+                                                appErasmus.Models.EnumEstadoCandidatura.Desistencia => "Desistência",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmConstrucao => "Rascunho",
+                                                appErasmus.Models.EnumEstadoCandidatura.Submetida => "Submetida",
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador => "Rejeitada (Coord.)",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI => "Em Análise (GRI)",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI => "Pós-Mobilidade (Em Análise)",
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite => "Rejeitada",
+                                                appErasmus.Models.EnumEstadoCandidatura.Aceite => "Aceite",
+                                                appErasmus.Models.EnumEstadoCandidatura.Finalizado => "Finalizado",
+                                                appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao => "Devolvida para Correção",
+                                                _ => item.EstadoCandidatura.ToString()
+                                            };
+                                        }
+                                        <span class="badge rounded-pill @badgeClass px-3 py-2 shadow-sm fw-semibold">
+                                            @estadoDescritivo
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            
+                                            <a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm" asp-action="Details" asp-route-id="@item.Id" title="Ver Detalhes">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+    
+                                            @if (item.EstadoCandidatura == EnumEstadoCandidatura.EmConstrucao || item.EstadoCandidatura == EnumEstadoCandidatura.DevolvidaParaCorrecao) {
+                                                if (item.EstadoCandidatura == EnumEstadoCandidatura.DevolvidaParaCorrecao) {
+                                                    <a class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                                        <i class="bi bi-pencil-square me-1"></i> Corrigir
+                                                    </a>
+                                                } else if (item.EstadoCandidatura == EnumEstadoCandidatura.EmConstrucao) {
+                                                    <a class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                                        <i class="bi bi-pencil-square me-1"></i> Editar
+                                                    </a>
+                                                }
+                                            }
+                                            
+                                            @if (item.EstadoCandidatura != appErasmus.Models.EnumEstadoCandidatura.Finalizado && item.EstadoCandidatura != appErasmus.Models.EnumEstadoCandidatura.Desistencia)
+                                            {
+                                                string tooltipTexto = item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmConstrucao 
+                                                    ? "Eliminar Rascunho Permanentemente" 
+                                                    : "Desistir Formalmente da Candidatura";
+
+                                                <a class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" asp-action="Delete" asp-route-id="@item.Id" title="@tooltipTexto">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

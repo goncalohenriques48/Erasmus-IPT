@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - appErasmus</title>
+    <link rel="icon" type="image/png" href="~/images/icon.png" />
+    <link rel="stylesheet" href="~/css/mycsstheme.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/appErasmus.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary border-bottom box-shadow" style="min-height: 64px;">
+            <div class="container-fluid">
+
+                <a class="navbar-brand d-flex align-items-center d-lg-none me-3" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/ipt.png" alt="logo" style="max-height: 36px;" class="logo-light" />
+                    <img src="~/images/ipt_preto.png" alt="logo" style="max-height: 36px;" class="logo-dark" />
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse justify-content-end align-items-end" id="navbarContent">
+
+                    <ul class="navbar-nav d-lg-none my-3 border-top pt-3 border-white border-opacity-10 order-2">
+                        <li class="nav-item"><a class="nav-link py-2" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door me-2"></i>Visão geral</a></li>
+                        <li class="nav-item"><a class="nav-link py-2" asp-controller="Home" asp-action="Privacy"><i class="bi bi-file-earmark-text me-2"></i>Privacidade</a></li>
+                        <li class="nav-item"><a class="nav-link py-2" asp-controller="Home" asp-action="Documentacao"><i class="bi bi-folder2-open me-2"></i>Documentação</a></li>
+                        <li class="nav-separator my-3"></li>
+                        @if (User.IsInRole("Aluno")) {
+                            <li class="nav-item"><a class="nav-link py-2" asp-controller="Candidaturas" asp-action="Index"><i class="bi bi-pencil-square me-2"></i>Candidatura</a></li>
+                        }
+                        @if (User.IsInRole("CoordenadorErasmus")) {
+                            <li class="nav-item border-top mt-2 pt-2"><a asp-controller="Coordenator" asp-action="Index" class="nav-link py-2 text-warning"><i class="bi bi-shield-lock me-2"></i>Coordenador</a></li>
+                        }
+                        @if (User.IsInRole("GRI")) {
+                            <li class="nav-item border-top mt-2 pt-2"><a asp-controller="GRI" asp-action="Index" class="nav-link py-2 text-warning"><i class="bi bi-shield-lock me-2"></i>GRI</a></li>
+                        }
+                        @if (User.IsInRole("Admin")) {
+                            <li class="nav-item border-top mt-2 pt-2"><a asp-controller="Administration" asp-action="Index" class="nav-link py-2 text-warning"><i class="bi bi-shield-lock me-2"></i>Administração</a></li>
+                        }
+
+                    </ul>
+
+                    <div class="d-flex flex-column flex-lg-row align-items-center gap-3 pt-2 pt-lg-0 ms-auto navbar-end border-top border-white border-opacity-10 border-lg-0 order-1 justify-content-end w-100 w-lg-auto">
+
+                        <!-- BOTÃO DE TEMA -->
+                        <button id="theme-toggle" class="btn btn-link text-decoration-none p-0 d-inline-flex align-items-center" aria-label="Alternar tema">
+                            <i id="theme-sun" class="bi bi-sun-fill"></i>
+                            <span class="theme-switch" role="switch"></span>
+                            <i id="theme-moon" class="bi bi-moon-fill"></i>
+                        </button>
+
+                        <!-- COMPONENTE DAS NOTIFICAÇÕES (SINO) -->
+                        <div class="text-white ms-2 ms-lg-0">
+                            @await Component.InvokeAsync("Notificacoes")
+                        </div>
+
+                        <!-- PAINEL DE LOGIN E BOAS VINDAS -->
+                        <div class="text-end">
+                            <partial name="_LoginPartial" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="app-body d-flex">
+        <aside class="app-sidebar bg-body-tertiary border-end d-none d-lg-block flex-shrink-0" style="width: 240px;">
+            <div class="sidebar-header">
+                <a class="navbar-brand d-flex align-items-center w-100" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/ipt.png" alt="logo" class="navbar-logo logo-light" />
+                    <img src="~/images/ipt_preto.png" alt="logo" class="navbar-logo logo-dark" />
+                </a>
+            </div>
+            <nav class="sidebar-nav px-2">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link d-flex align-items-center" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door me-2"></i>Visão geral</a></li>
+                    <li class="nav-item"><a class="nav-link d-flex align-items-center" asp-controller="Home" asp-action="Privacy"><i class="bi bi-file-earmark-text me-2"></i>Privacidade</a></li>
+                    <li class="nav-item"><a class="nav-link d-flex align-items-center" asp-controller="Home" asp-action="Documentacao"><i class="bi bi-folder2-open me-2"></i>Documentação</a></li>
+                    <li class="nav-separator my-3"></li>
+                    @if (User.IsInRole("Aluno")) {
+                        <li class="nav-item"><a class="nav-link d-flex align-items-center" asp-controller="Candidaturas" asp-action="Index"><i class="bi bi-pencil-square me-2"></i>Candidatura</a></li>
+                    }
+                    @if (User.IsInRole("CoordenadorErasmus")) {
+                        <li class="nav-item"><a asp-controller="Coordenator" asp-action="Index" class="nav-link"><i class="bi bi-shield-lock me-2"></i>Coordenador</a></li>
+                    }
+                    @if (User.IsInRole("GRI")) {
+                        <li class="nav-item"><a asp-controller="GRI" asp-action="Index" class="nav-link"><i class="bi bi-shield-lock me-2"></i>GRI</a></li>
+                    }
+                    @if (User.IsInRole("Admin")) {
+                        <li class="nav-item"><a asp-controller="Administration" asp-action="Index" class="nav-link"><i class="bi bi-shield-lock me-2"></i>Administração</a></li>
+                    }
+                </ul>
+            </nav>
+        </aside>
+        <div class="app-main flex-grow-1" style="overflow-x: hidden;"><main role="main" class="pb-3">@RenderBody()</main></div>
+    </div>
+
+    <footer class="border-top footer text-muted mt-auto py-3 bg-body-tertiary">
+        <div class="container-fluid text-center text-lg-start">&copy; 2026 - appErasmus - <a asp-controller="Home" asp-action="Privacy">Privacidade</a></div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

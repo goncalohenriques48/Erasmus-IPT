@@ -1,0 +1,751 @@
+@using appErasmus.Models 
+@model appErasmus.Controllers.CandidaturaFormViewModel
+
+@{
+    ViewData["Title"] = "Editar Rascunho";
+    var codigosOutra = ViewBag.OutraUniversidadeCodes as IList<string> ?? new List<string>();
+
+    bool MostrarCampoOutraUniversidade(int preferencia) {
+        var escolha = Model.CandidaturasUniversidades?.FirstOrDefault(c => c.Preferencia == preferencia);
+        return escolha != null
+            && (codigosOutra.Contains(escolha.UniversidadeFK) || !string.IsNullOrWhiteSpace(escolha.OutraUniversidade));
+    }
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<div class="container-fluid pt-3 pb-5">
+
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white rounded p-3 me-3 shadow-sm">
+            <i class="bi bi-pencil-square" style="font-size: 2rem;"></i>
+        </div>
+        <div>
+            <h1 class="display-6 fw-bold text-primary mb-0">Modificar Rascunho</h1>
+            <p class="text-muted mb-0">Altera os dados do teu rascunho. Podes continuar a guardar como rascunho ou submeter definitivamente.</p>
+        </div>
+    </div>
+    @if (Model.EstadoCandidatura == EnumEstadoCandidatura.DevolvidaParaCorrecao || Model.OrigemCorrecao != EnumOrigemCorrecao.None) {
+        <div class="alert alert-warning border-0 shadow-sm mb-4">
+            <h5 class="fw-bold mb-2">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Candidatura devolvida para correção
+            </h5>
+
+            <p class="mb-2">
+                <strong>Devolvida por:</strong>
+                @(Model.OrigemCorrecao == appErasmus.Models.EnumOrigemCorrecao.GRI
+                    ? "GRI"
+                    : "Coordenador Erasmus")
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.MotivoRejeicao)) {
+                <p class="mb-0">
+                    <strong>Motivo:</strong>
+                    @Model.MotivoRejeicao
+                </p>
+            }
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+        <div class="card-body p-4 p-md-5">
+
+            <!-- FORMULÁRIO PRINCIPAL DA CANDIDATURA -->
+            <form id="formEditarCandidatura" asp-action="Edit" method="post" onsubmit="return validarFormulario()">
+                @Html.AntiForgeryToken()
+
+                <div class="text-danger fw-bold mb-4 p-3 border border-danger rounded bg-danger bg-opacity-10" asp-validation-summary="ModelOnly"></div>
+
+                <input type="hidden" asp-for="Id" />
+                <h5 class="fw-bold text-primary mb-4">
+                    <i class="bi bi-person-badge me-2"></i>Dados do Aluno
+                </h5>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNomeCompleto" disabled />
+                            <label>Nome Completo</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilEmail" disabled />
+                            <label>Email</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNumeroAluno" disabled />
+                            <label>Número de Aluno</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilAnoCurricular" disabled />
+                            <label>Ano Curricular</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNIF" disabled />
+                            <label>NIF</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-floating">
+                            <select id="cursoSelect" class="form-select" asp-for="CursoFK" required>
+                                <option value="">-- Seleciona o curso associado a esta candidatura --</option>
+                                @foreach (var curso in ViewBag.CursosAluno) {
+                                    <option value="@curso.Id" selected="@(curso.Selected ? "selected" : null)" data-escola="@curso.Escola" data-grau="@curso.Grau">
+                                        @curso.Nome
+                                    </option>
+                                }
+                            </select>
+                            <label asp-for="CursoFK">Curso associado à candidatura</label>
+                            <span class="text-danger small" asp-validation-for="CursoFK"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input id="cursoEscola" class="form-control" type="text" disabled />
+                            <label>Escola</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input id="cursoGrau" class="form-control" type="text" disabled />
+                            <label>Grau / Tipologia</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilTipoDocumento" disabled />
+                            <label>Tipo de Documento</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNumeroDocumento" disabled />
+                            <label>Número do Documento</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25" />
+                <h5 class="fw-bold text-primary mb-4"><i class="bi bi-info-circle me-2"></i>Dados da Mobilidade</h5>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select id="anoLetivoSelect" class="form-select" asp-for="AnoLetivo" asp-items="ViewBag.AnosLetivos" required>
+                                <option value="" disabled>Seleciona o Ano Letivo</option>
+                            </select>
+                            <label asp-for="AnoLetivo">Ano Letivo</label>
+                            <span class="text-danger small" asp-validation-for="AnoLetivo"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label text-muted small fw-bold mb-2">Período de Mobilidade</label>
+                        <div class="d-flex gap-4 flex-wrap text-body">
+                            <div class="form-check">
+                                <input id="semestre1" class="form-check-input" type="radio" name="Semestre" value="1" @(Model.Semestre == appErasmus.Models.EnumSemestre.PrimeiroSemestre ? "checked" : "")>
+                                <label class="form-check-label" for="semestre1">1º Semestre (Inverno)</label>
+                            </div>
+                            <div class="form-check">
+                                <input id="semestre2" class="form-check-input" type="radio" name="Semestre" value="2" @(Model.Semestre == appErasmus.Models.EnumSemestre.SegundoSemestre ? "checked" : "")>
+                                <label class="form-check-label" for="semestre2">2º Semestre (Verão)</label>
+                            </div>
+                            <div class="form-check">
+                                <input id="semestre3" class="form-check-input" type="radio" name="Semestre" value="3" @(Model.Semestre == appErasmus.Models.EnumSemestre.Anual ? "checked" : "")>
+                                <label class="form-check-label" for="semestre3">Ano Inteiro (Anual)</label>
+                            </div>
+                        </div>
+                        <span class="text-danger small" asp-validation-for="Semestre"></span>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25" />
+                <h5 class="fw-bold text-primary mb-3"><i class="bi bi-building me-2"></i>Destino de Mobilidade</h5>
+
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <div class="border border-primary border-2 rounded p-3 bg-body">
+                            <label class="fw-bold text-primary mb-2">1ª Opção (Obrigatória)</label>
+                            <select id="uni1" class="form-select select2-universidade" name="universidade1" asp-items="ViewBag.Universidades" required>
+                                <option value="" disabled>-- Pesquisa e seleciona a tua 1ª Escolha --</option>
+                            </select>
+                            <input id="uni1Other" class="form-control mt-2 @(MostrarCampoOutraUniversidade(1) ? "" : "d-none")" type="text" name="universidade1Other" placeholder="Escreve o nome da universidade" value="@(Model.CandidaturasUniversidades?.FirstOrDefault(c => c.Preferencia == 1)?.OutraUniversidade ?? "")" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2">
+                            <label class="fw-bold text-muted mb-2">2ª Opção (Facultativa)</label>
+                            <select id="uni2" class="form-select select2-universidade" name="universidade2" asp-items="ViewBag.Universidades">
+                                <option value="">-- Facultativo --</option>
+                            </select>
+                            <input id="uni2Other" class="form-control mt-2 @(MostrarCampoOutraUniversidade(2) ? "" : "d-none")" type="text" name="universidade2Other" placeholder="Escreve o nome da universidade" value="@(Model.CandidaturasUniversidades?.FirstOrDefault(c => c.Preferencia == 2)?.OutraUniversidade ?? "")" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2">
+                            <label class="fw-bold text-muted mb-2">3ª Opção (Facultativa)</label>
+                            <select id="uni3" class="form-select select2-universidade" name="universidade3" asp-items="ViewBag.Universidades">
+                                <option value="">-- Facultativo --</option>
+                            </select>
+                            <input id="uni3Other" class="form-control mt-2 @(MostrarCampoOutraUniversidade(3) ? "" : "d-none")" type="text" name="universidade3Other" placeholder="Escreve o nome da universidade" value="@(Model.CandidaturasUniversidades?.FirstOrDefault(c => c.Preferencia == 3)?.OutraUniversidade ?? "")" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25" />
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-primary mb-0"><i class="bi bi-translate me-2"></i>Domínio de Línguas Estrangeiras</h5>
+                    <button id="btnAdicionarLingua" class="btn btn-sm btn-outline-primary fw-bold rounded-pill shadow-sm" type="button">
+                        <i class="bi bi-plus-circle me-1"></i> Adicionar Língua
+                    </button>
+                </div>
+
+                <div class="col-md-12">
+                    <div id="linguasContainer">
+                        @if (Model.Linguas != null && Model.Linguas.Any()) {
+                            int idx = 0;
+                            var padrao = new[] { "Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Mandarim" };
+
+                            foreach (var item in Model.Linguas) {
+                                bool isOutra = !padrao.Contains(item.Lingua) && !string.IsNullOrWhiteSpace(item.Lingua);
+                                string rowId = $"linguaRow_{idx}";
+
+                                
+                                <div class="row g-3 align-items-start align-items-md-center mb-3 p-3 border rounded shadow-sm bg-body position-relative" id="@rowId">
+                                    <input type="hidden" name="Linguas.Index" value="@idx" />
+                                    <div class="col-md-5">
+                                        <div class="form-floating">
+                                            <select id="selectLingua_@idx" name="@(isOutra ? "" : $"Linguas[{idx}].Lingua")" class="form-select" onchange="verificarOutra(this, @idx)" required>
+                                                <option value="" disabled>Selecionar...</option>
+                                                <option value="Inglês" selected="@(item.Lingua == "Inglês")">Inglês</option>
+                                                <option value="Espanhol" selected="@(item.Lingua == "Espanhol")">Espanhol</option>
+                                                <option value="Francês" selected="@(item.Lingua == "Francês")">Francês</option>
+                                                <option value="Alemão" selected="@(item.Lingua == "Alemão")">Alemão</option>
+                                                <option value="Italiano" selected="@(item.Lingua == "Italiano")">Italiano</option>
+                                                <option value="Mandarim" selected="@(item.Lingua == "Mandarim")">Mandarim</option>
+                                                <option value="Outra" selected="@isOutra">Outra</option>
+                                            </select>
+                                            <label>Idioma</label>
+                                        </div>
+                                        <input id="inputOutra_@idx" name="@(isOutra ? $"Linguas[{idx}].Lingua" : "")" class="form-control mt-2 @(isOutra ? "" : "d-none")" type="text" placeholder="Qual é a língua?" value="@(isOutra ? item.Lingua : "")" @(isOutra ? "" : "disabled") @(isOutra ? "required" : "")>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-floating">
+                                            <select class="form-select" name="Linguas[@idx].Nivel" required>
+                                                <option value="" disabled>Selecionar...</option>
+                                                <option value="A1" selected="@(item.Nivel.ToString() == "A1")">A1 (Iniciação)</option>
+                                                <option value="A2" selected="@(item.Nivel.ToString() == "A2")">A2 (Elementar)</option>
+                                                <option value="B1" selected="@(item.Nivel.ToString() == "B1")">B1 (Intermédio)</option>
+                                                <option value="B2" selected="@(item.Nivel.ToString() == "B2")">B2 (Independente)</option>
+                                                <option value="C1" selected="@(item.Nivel.ToString() == "C1")">C1 (Avançado)</option>
+                                                <option value="C2" selected="@(item.Nivel.ToString() == "C2")">C2 (Proficiente)</option>
+                                            </select>
+                                            <label>Nível (QECR)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-md-end text-center">
+                                        <button class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center" style="height: 58px;" type="button" onclick="removerLingua('@rowId')" title="Remover Língua">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                idx++;
+                            }
+                        }
+                    </div>
+
+                    
+                    <div id="linguasEmptyState" class="text-center p-4 border border-dashed rounded bg-body-tertiary text-muted @(Model.Linguas != null && Model.Linguas.Any() ? "d-none" : "")">
+                        <i class="bi bi-chat-square-text fs-3 mb-2"></i>
+                        <p class="mb-0">Ainda não adicionaste nenhuma língua. Clica no botão acima!</p>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25" />
+                <h5 class="fw-bold text-primary mb-3"><i class="bi bi-bank me-2"></i>Dados Financeiros</h5>
+
+                <div class="col-md-12 mb-2">
+                    <div class="form-check form-switch fs-5 text-body">
+                        <input id="bolseiroSwitch" class="form-check-input" type="checkbox" asp-for="Bolseiro">
+                        <label class="form-check-label ms-2" for="bolseiroSwitch">Sou bolseiro da DGES / SAS</label>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input class="form-control" maxlength="50" type="text" asp-for="IBAN" placeholder="PT50..." />
+                        <label asp-for="IBAN">IBAN (Para pagamento da Bolsa Erasmus)</label>
+                        <span class="text-danger small" asp-validation-for="IBAN"></span>
+                        <div class="form-text mt-2 text-body-secondary"><i class="bi bi-shield-lock me-1"></i>O teu IBAN será guardado de forma segura e utilizado apenas pelo GRI.</div>
+                    </div>
+                </div>
+            </form> 
+            
+            <hr class="my-4 text-muted opacity-25" />
+            <h5 id="documentos-candidatura" class="fw-bold text-primary mb-3">
+                <i class="bi bi-paperclip me-2"></i>Documentos da Candidatura
+            </h5>
+            <p class="text-body-secondary small mb-3">Adicione documentos necessários ao processo de mobilidade.</p>
+
+            <!-- CORRIGIDO PARA DARK MODE: bg-body-secondary -->
+            <form class="border rounded p-3 bg-body-secondary mb-4 border-secondary border-opacity-10" asp-action="UploadDocumento" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="candidaturaId" value="@Model.Id" />
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-body small">Tipo de Documento</label>
+                        <select class="form-select categoria-documento" name="categoriaDocumento" asp-items="ViewBag.CategoriasDocumentos" required>
+                            <option value="">-- Selecionar o tipo --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 descricao-outro-wrapper d-none">
+                        <label class="form-label fw-bold text-body small">Nome do Documento</label>
+                        <input class="form-control descricao-documento" type="text" name="descricaoDocumento" maxlength="150" placeholder="Ex: Declaração adicional" />
+                    </div>
+
+                    <div class="col-md-5 col-lg-3">
+                        <label class="form-label fw-bold text-body small">Ficheiro</label>
+                        <input class="form-control" type="file" name="ficheiro" accept=".pdf,.jpg,.jpeg,.png,.docx" required />
+                    </div>
+
+                    <div class="col-md-3 col-lg-2 text-end">
+                        <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" style="height: 38px;" type="submit" title="Submeter Ficheiro">
+                            <i class="bi bi-upload me-1"></i>
+                            <span class="d-none d-lg-inline">Adicionar</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-text mt-2 text-body-secondary">Formatos aceites: PDF, JPG, PNG ou DOCX. Máximo: 10 MB.</div>
+            </form>
+
+            @if (Model.Documentos != null && Model.Documentos.Any()) {
+                <div class="table-responsive mb-4">
+                    <!-- CORRIGIDO PARA DARK MODE: bg-transparent border-secondary -->
+                    <table class="table table-hover align-middle mb-0 border rounded bg-transparent border-secondary border-opacity-10">
+                        <thead>
+                            <tr class="text-body-secondary small border-bottom">
+                                <th class="py-3">Tipo</th>
+                                <th>Descrição</th>
+                                <th>Ficheiro</th>
+                                <th>Data</th>
+                                <th class="text-end pe-3">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var documento in Model.Documentos.OrderByDescending(d => d.DataCriacao)) {
+                                <tr class="border-bottom border-secondary border-opacity-10 text-body">
+                                    <td class="fw-semibold">@documento.CategoriaFK</td>
+                                    <td>@(string.IsNullOrWhiteSpace(documento.DescricaoDocumento) ? "—" : documento.DescricaoDocumento)</td>
+                                    <td class="text-break text-body-secondary small">@documento.NomeOriginal</td>
+                                    <td class="text-body-secondary small">@documento.DataCriacao.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a class="btn btn-sm btn-outline-primary px-3 rounded-pill" asp-action="DownloadDocumento" asp-route-documentoId="@documento.Id">
+                                                <i class="bi bi-download me-1"></i> Download
+                                            </a>
+                                            <form class="d-inline" asp-action="RemoverDocumento" method="post" onsubmit="return confirm('Confirmas a remoção deste documento?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="documentoId" value="@documento.Id" />
+                                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" type="submit">
+                                                    <i class="bi bi-trash me-1"></i> Remover
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            } else {
+                <!-- CORRIGIDO PARA DARK MODE -->
+                <div class="alert alert-secondary bg-transparent border border-secondary border-opacity-10 mb-4 text-body-secondary">
+                    <i class="bi bi-info-circle me-2"></i> Ainda não foram adicionados documentos a esta candidatura.
+                </div>
+            }
+
+            <!-- CORREÇÃO MOBILE: flex-column flex-md-row -->
+            @if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmConstrucao || Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao) {
+                <div class="mt-5 d-flex flex-column flex-md-row gap-3">
+                    <button class="btn btn-primary btn-lg fw-bold shadow-sm px-md-5" type="submit" form="formEditarCandidatura" name="botaoAcao" value="submeter">
+                        <i class="bi bi-send me-2"></i> Submeter Candidatura Definitiva
+                    </button>
+
+                    <button class="btn btn-outline-primary btn-lg fw-bold shadow-sm px-md-4" type="submit" form="formEditarCandidatura" name="botaoAcao" value="rascunho">
+                        <i class="bi bi-bookmark me-2"></i> Atualizar Rascunho
+                    </button>
+
+                    <a class="btn btn-light btn-lg shadow-sm border" asp-action="Index">Cancelar</a>
+                </div>
+            } 
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const appConfig = {
+            linguasCount: @(Model.Linguas?.Count ?? 0),
+            outraUniCodes: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.OutraUniversidadeCodes ?? new List<string>())),
+            uni1Selecionada: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Uni1Selecionada ?? "")),
+            uni2Selecionada: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Uni2Selecionada ?? "")),
+            uni3Selecionada: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Uni3Selecionada ?? ""))
+        };
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const cursoSelect = document.getElementById("cursoSelect");
+            const cursoEscola = document.getElementById("cursoEscola");
+            const cursoGrau = document.getElementById("cursoGrau");
+
+            function atualizarDadosCurso() {
+                if (!cursoSelect || !cursoEscola || !cursoGrau) return;
+                const optionSelecionada = cursoSelect.options[cursoSelect.selectedIndex];
+                if (!optionSelecionada || !optionSelecionada.value) {
+                    cursoEscola.value = "";
+                    cursoGrau.value = "";
+                    return;
+                }
+                cursoEscola.value = optionSelecionada.getAttribute("data-escola") || "";
+                cursoGrau.value = optionSelecionada.getAttribute("data-grau") || "";
+            }
+
+            if (cursoSelect) {
+                cursoSelect.addEventListener("change", atualizarDadosCurso);
+                atualizarDadosCurso();
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const outraUniversidadeCodes = appConfig.outraUniCodes;
+            const container = document.getElementById("linguasContainer");
+            const emptyState = document.getElementById("linguasEmptyState");
+
+            function pesquisaComPais(params, data) {
+                if ($.trim(params.term) === '') return data;
+                if (typeof data.text === 'undefined') return null;
+                const termoPesquisa = params.term.toLowerCase();
+                const textoItem = data.text.toLowerCase();
+                if (textoItem.indexOf(termoPesquisa) > -1) return data;
+
+                if (data.element && data.element.parentElement && data.element.parentElement.tagName === 'OPTGROUP') {
+                    const nomeGrupo = data.element.parentElement.label.toLowerCase();
+                    if (nomeGrupo.indexOf(termoPesquisa) > -1) return data;
+                }
+
+                if (data.children && data.children.length > 0) {
+                    const grupoCopiado = $.extend(true, {}, data);
+                    const universidadesFiltradas = [];
+                    for (let i = 0; i < grupoCopiado.children.length; i++) {
+                        const universidade = grupoCopiado.children[i];
+                        if (universidade.text.toLowerCase().indexOf(termoPesquisa) > -1) {
+                            universidadesFiltradas.push(universidade);
+                        }
+                    }
+                    if (universidadesFiltradas.length > 0) {
+                        grupoCopiado.children = universitiesFiltradas;
+                        return grupoCopiado;
+                    }
+                }
+                return null;
+            }
+
+            $('.select2-universidade').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: "Pesquisa por nome ou país...",
+                matcher: pesquisaComPais
+            });
+
+            function isOutraUniversidade(value) {
+                return outraUniversidadeCodes.includes(value);
+            }
+
+            const paresUniversidadeOutra = [
+                { selectId: 'uni1', inputId: 'uni1Other' },
+                { selectId: 'uni2', inputId: 'uni2Other' },
+                { selectId: 'uni3', inputId: 'uni3Other' }
+            ];
+
+            function atualizarCampoOutraUniversidade(selectId, inputId, permitirLimpar = true) {
+                const sel = document.getElementById(selectId);
+                const input = document.getElementById(inputId);
+                if (!sel || !input) return;
+
+                let isOutra = isOutraUniversidade(sel.value);
+                const idx = sel.selectedIndex;
+                if (!isOutra && idx >= 0 && sel.options[idx]) {
+                    const optionText = (sel.options[idx].text || '').toLowerCase();
+                    if (optionText.includes('outra') || optionText.includes('other')) isOutra = true;
+                }
+
+                if (isOutra) {
+                    input.classList.remove('d-none');
+                    input.required = true;
+                } else {
+                    input.classList.add('d-none');
+                    input.required = false;
+                    if (permitirLimpar) input.value = '';
+                }
+            }
+
+            paresUniversidadeOutra.forEach(({ selectId, inputId }) => {
+                const sel = document.getElementById(selectId);
+                if (!sel) return;
+                $(sel).on('change select2:select', function() {
+                    atualizarCampoOutraUniversidade(selectId, inputId, true);
+                });
+            });
+
+            if (appConfig.uni1Selecionada) $('#uni1').val(appConfig.uni1Selecionada);
+            if (appConfig.uni2Selecionada) $('#uni2').val(appConfig.uni2Selecionada);
+            if (appConfig.uni3Selecionada) $('#uni3').val(appConfig.uni3Selecionada);
+
+            $('.select2-universidade').trigger('change');
+
+            paresUniversidadeOutra.forEach(({ selectId, inputId }) => {
+                atualizarCampoOutraUniversidade(selectId, inputId, false);
+            });
+
+            // --- Formatação do IBAN ---
+            const ibanInput = document.getElementById("IBAN");
+            if (ibanInput) {
+                ibanInput.addEventListener("input", function () {
+                    let value = this.value.replace(/[\s\-]/g, '').toUpperCase();
+                    if (value.length === 0) return;
+                    if (!value.startsWith('PT') && /^[0-9]/.test(value)) {
+                         value = 'PT50' + value;
+                    }
+                    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                    this.value = formattedValue.substring(0, 42);
+                });
+            }
+
+            // =========================================================================
+            // VALIDAÇÃO DE IBAN EM TEMPO REAL (CLIENT-SIDE)
+            // =========================================================================
+        
+            // 1. Criamos a regra "validarIBAN" ensinando o jQuery a fazer a mesma matemática do nosso C#
+            $.validator.addMethod("validarIBAN", function (value, element) {
+                if (!value) return true; // Se estiver vazio, o [Required] normal é que apanha.
+            
+                let iban = value.replace(/\s/g, '').toUpperCase();
+            
+                // Valida estrutura geral
+                if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(iban)) {
+                    $.validator.messages.validarIBAN = "O formato do IBAN é inválido (usa apenas letras e números).";
+                    return false;
+                }
+            
+                let pais = iban.substring(0, 2);
+            
+                // Valida regras por país
+                if (pais === "PT") {
+                    if (!iban.startsWith("PT50")) {
+                        $.validator.messages.validarIBAN = "Os IBANs de contas portuguesas começam obrigatoriamente por 'PT50'.";
+                        return false;
+                    }
+                    if (iban.length !== 25) {
+                        $.validator.messages.validarIBAN = "Um IBAN português tem de ter 25 caracteres. O que inseriste tem " + iban.length + ".";
+                        return false;
+                    }
+                } else if (pais === "BR" && iban.length !== 29) {
+                    $.validator.messages.validarIBAN = "Um IBAN brasileiro tem de ter 29 caracteres. O que inseriste tem " + iban.length + ".";
+                    return false;
+                } else if (pais === "PL" && iban.length !== 28) {
+                    $.validator.messages.validarIBAN = "Um IBAN polaco tem de ter 28 caracteres. O que inseriste tem " + iban.length + ".";
+                    return false;
+                } else if (pais === "ES" && iban.length !== 24) {
+                    $.validator.messages.validarIBAN = "Um IBAN espanhol tem de ter 24 caracteres. O que inseriste tem " + iban.length + ".";
+                    return false;
+                }
+            
+                return true;
+            }, "IBAN inválido.");
+
+            // 2. Colamos a regra diretamente no input do IBAN!
+            $(function () {
+                $("#IBAN").rules("add", {
+                    validarIBAN: true
+                });
+            });
+
+            // --- Gestão das Línguas ---
+            let linguaIndex = appConfig.linguasCount;
+            const btnAdicionar = document.getElementById("btnAdicionarLingua");
+
+            btnAdicionar.addEventListener("click", function () {
+                if (emptyState) emptyState.style.display = 'none';
+                const rowId = 'linguaRow_' + linguaIndex;
+                
+                
+                let html = `
+                    <div class="row g-3 align-items-start align-items-md-center mb-3 p-3 border rounded shadow-sm bg-body position-relative" id="${rowId}">
+                        <input type="hidden" name="Linguas.Index" value="${linguaIndex}" />
+                        <div class="col-md-5">
+                            <div class="form-floating">
+                                <select id="selectLingua_${linguaIndex}" name="Linguas[${linguaIndex}].Lingua" class="form-select" onchange="verificarOutra(this, ${linguaIndex})" required>
+                                    <option value="" disabled selected>Selecionar...</option>
+                                    <option value="Inglês">Inglês</option>
+                                    <option value="Espanhol">Espanhol</option>
+                                    <option value="Francês">Francês</option>
+                                    <option value="Alemão">Alemão</option>
+                                    <option value="Italiano">Italiano</option>
+                                    <option value="Mandarim">Mandarim</option>
+                                    <option value="Outra">Outra</option>
+                                </select>
+                                <label>Idioma</label>
+                            </div>
+                            <input type="text" id="inputOutra_${linguaIndex}" class="form-control mt-2 d-none" placeholder="Qual é a língua?" disabled>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-floating">
+                                <select name="Linguas[${linguaIndex}].Nivel" class="form-select" required>
+                                    <option value="" disabled selected>Selecionar...</option>
+                                    <option value="A1">A1 (Iniciação)</option>
+                                    <option value="A2">A2 (Elementar)</option>
+                                    <option value="B1">B1 (Intermédio)</option>
+                                    <option value="B2">B2 (Independente)</option>
+                                    <option value="C1">C1 (Avançado)</option>
+                                    <option value="C2">C2 (Proficiente)</option>
+                                </select>
+                                <label>Nível (QECR)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-md-end text-center">
+                            <button type="button" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center" style="height: 58px;" onclick="removerLingua('${rowId}')" title="Remover Língua">
+                                <i class="bi bi-trash fs-5"></i>
+                            </button>
+                        </div>
+                    </div>`;
+
+                container.insertAdjacentHTML('beforeend', html);
+                linguaIndex++;
+            });
+
+            window.verificarOutra = function(select, index) {
+                const inputOutra = document.getElementById(`inputOutra_${index}`);
+                if (select.value === "Outra") {
+                    select.removeAttribute("name");
+                    inputOutra.setAttribute("name", `Linguas[${index}].Lingua`);
+                    inputOutra.classList.remove("d-none");
+                    inputOutra.disabled = false;
+                    inputOutra.required = true;
+                } else {
+                    select.setAttribute("name", `Linguas[${index}].Lingua`);
+                    inputOutra.removeAttribute("name");
+                    inputOutra.classList.add("d-none");
+                    inputOutra.disabled = true;
+                    inputOutra.required = false;
+                }
+            };
+
+            window.removerLingua = function(rowId) {
+                document.getElementById(rowId).remove();
+                if (container.children.length === 0 && emptyState) {
+                    emptyState.classList.remove('d-none');
+                }
+            };
+
+            // --- Lógica para esconder o input do tipo "Outro" no Documento ---
+            document.querySelectorAll(".categoria-documento").forEach(function (categoria) {
+                const row = categoria.closest(".row");
+                const wrapper = row.querySelector(".descricao-outro-wrapper");
+                const descricao = row.querySelector(".descricao-documento");
+
+                function atualizarDescricao() {
+                    if (categoria.value === "Outro") {
+                        wrapper.classList.remove("d-none");
+                        descricao.required = true;
+                    } else {
+                        wrapper.classList.add("d-none");
+                        descricao.required = false;
+                        descricao.value = "";
+                    }
+                }
+
+                categoria.addEventListener("change", atualizarDescricao);
+                atualizarDescricao();
+            });
+
+            // --- VALIDAÇÃO COMPLETA UNIFICADA DO FORMULÁRIO ---
+            window.validarFormulario = function() {
+                const u1 = document.getElementById("uni1").value;
+                const u2 = document.getElementById("uni2").value;
+                const u3 = document.getElementById("uni3").value;
+                const escolhas = [u1, u2, u3].filter(val => val !== ""); 
+                const escolhasNormalizadas = escolhas.map(val => isOutraUniversidade(val) ? "__OUTRA__" : val);
+                const escolhasUnicas = new Set(escolhasNormalizadas); 
+
+                if (escolhasNormalizadas.length !== escolhasUnicas.size) {
+                    alert("⛔ ATENÇÃO: Escolheste a mesma universidade de destino mais do que uma vez!\n\nPor favor, escolhe destinos diferentes.");
+                    return false;
+                }
+
+                const opcoesOutra = [
+                    { selectId: 'uni1', inputId: 'uni1Other', label: '1ª opção' },
+                    { selectId: 'uni2', inputId: 'uni2Other', label: '2ª opção' },
+                    { selectId: 'uni3', inputId: 'uni3Other', label: '3ª option' }
+                ];
+
+                for (const opcao of opcoesOutra) {
+                    const select = document.getElementById(opcao.selectId);
+                    const input = document.getElementById(opcao.inputId);
+                    if (select && isOutraUniversidade(select.value) && input && !input.value.trim()) {
+                        alert(`⛔ ATENÇÃO: Escolheste 'Outra' na ${opcao.label}, mas não escreveste o nome da universidade.`);
+                        input.focus();
+                        return false;
+                    }
+                }
+
+                const elementosLinguas = document.querySelectorAll("[name$='.Lingua']");
+                const linguasEscolhidas = [];
+                for (let i = 0; i < elementosLinguas.length; i++) {
+                    const lingua = elementosLinguas[i].value.trim().toLowerCase(); 
+                    if (lingua) {
+                        if (linguasEscolhidas.includes(lingua)) {
+                            alert("⛔ ATENÇÃO: Adicionaste a mesma língua mais do que uma vez!\n\nPor favor, remove a linha repetida antes de submeteres a candidatura.");
+                            return false;
+                        }
+                        linguasEscolhidas.push(lingua);
+                    }
+                }
+                return true;
+            };
+        });
+    </script>
+}

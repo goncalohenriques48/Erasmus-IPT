@@ -1,0 +1,148 @@
+@model IEnumerable<appErasmus.Models.Candidatura>
+
+@{
+    ViewData["Title"] = "Gestão de Candidaturas";
+}
+
+<div class="container-fluid pt-4 pb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-0"><i class="bi bi-briefcase me-2"></i>Gestão de Candidaturas</h2>
+            <p class="text-muted mb-0">Área reservada ao Coordenador Erasmus</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 bg-transparent" id="tabelaCandidaturas">
+                    <thead>
+                        <tr class="text-body-secondary small border-bottom">
+                            <th class="ps-4 py-3">Aluno</th>
+                            <th>Data Submissão</th>
+                            <th>Ano / Semestre</th> 
+                            <th>Estado</th>
+                            <th class="text-end pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody> 
+                            @foreach (var item in Model)
+                            {
+                                bool requerAcao = item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Submetida;
+                                
+                                <tr class="border-bottom border-secondary border-opacity-10">
+                                    
+                                    <td class="ps-4 py-3 @(requerAcao ? "border-start border-4 border-warning" : "")">
+                                        <span class="fw-bold text-primary">@item.Aluno.NomeCompleto</span>
+                                        @if(requerAcao) 
+                                        { 
+                                            <span class="badge bg-danger ms-2 shadow-sm"><i class="bi bi-exclamation-circle me-1"></i> Ação Requerida</span> 
+                                        }
+                                        <br/>
+                                        <small class="text-body-secondary">@item.Aluno.Email</small>
+                                    </td>
+                                    
+                                    <td class="text-body-secondary">@item.DataSubmissao.ToString("dd/MM/yyyy HH:mm")</td>
+                                    
+                                    <td class="text-body">
+                                        @item.AnoLetivo - 
+                                        <span class="small text-body-secondary">
+                                            @((int)item.Semestre == 1 ? "1º Sem" : (int)item.Semestre == 2 ? "2º Sem" : "Anual")
+                                        </span>
+                                    </td>
+                                    
+                                    <td>
+                                        @{
+                                            // Lógica de cores das badges
+                                            var badgeClass = item.EstadoCandidatura switch
+                                            {
+                                                appErasmus.Models.EnumEstadoCandidatura.Submetida => "bg-warning text-dark",
+                                                appErasmus.Models.EnumEstadoCandidatura.Aceite => "bg-primary text-white", // Azul para "Em Mobilidade"
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI => "bg-warning text-dark",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI => "bg-info text-dark",
+                                                appErasmus.Models.EnumEstadoCandidatura.Finalizado => "bg-success text-white", // Verde para "Concluído"
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador => "bg-danger text-white",
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite => "bg-danger text-white",
+                                                appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao => "bg-info text-dark",
+                                                _ => "bg-secondary"
+                                            };
+
+
+                                            // Lógica dos textos descritivos
+                                            var estadoDescritivo = item.EstadoCandidatura switch
+                                            {
+                                                appErasmus.Models.EnumEstadoCandidatura.Submetida => "Em Análise Coordenador",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI => "Em Análise (GRI)",
+                                                appErasmus.Models.EnumEstadoCandidatura.Aceite => "Em Mobilidade",
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador => "Rejeitada pelo Coordenador",
+                                                appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite => "Rejeitada",
+                                                appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI => "Pós-Mobilidade (Em Análise)",
+                                                appErasmus.Models.EnumEstadoCandidatura.Finalizado => "Finalizado",
+                                                appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao => "Devolvida para Correção",
+                                                _ => item.EstadoCandidatura.ToString()
+                                            };
+                                            if (item.OrigemCorrecao != appErasmus.Models.EnumOrigemCorrecao.None) {
+                                                badgeClass = "bg-info text-dark";
+                                                estadoDescritivo = "Devolvida para Correção";
+                                            }
+                                        }
+
+                                        <span class="badge rounded-pill @badgeClass px-3 py-2 shadow-sm fw-semibold">
+                                            @estadoDescritivo
+                                        </span>
+                                    </td>
+                                    
+                                    <td class="text-end pe-4">
+                                        @if (requerAcao)
+                                        {
+                                            <a class="btn btn-sm btn-primary shadow-sm px-3 rounded-pill fw-bold" asp-action="Details" asp-route-id="@item.Id">
+                                                Avaliar <i class="bi bi-arrow-right-short ms-1"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a class="btn btn-sm btn-outline-primary shadow-sm px-3 rounded-pill" asp-action="Details" asp-route-id="@item.Id">
+                                                Ver <i class="bi bi-eye ms-1"></i>
+                                            </a>
+                                        }
+                                    </td>
+                                    
+                                </tr>
+                            } 
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#tabelaCandidaturas').DataTable({
+                // Tradução oficial para Português de Portugal
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-PT.json',
+                    emptyTable: 'Não existem candidaturas disponíveis.'
+                },
+                // Ordenar por defeito pela data de submissão de forma descendente (os mais recentes primeiro)
+                order: [[1, 'desc']],
+                // Quantidade de registos por página
+                pageLength: 10,
+                // Opções de paginação
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+                // Remove a ordenação da última coluna (botão "Ver")
+                columnDefs: [ { orderable: false, targets: -1 }]
+            });
+        });
+    </script>
+
+}

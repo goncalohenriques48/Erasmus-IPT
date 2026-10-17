@@ -1,0 +1,334 @@
+@model appErasmus.Models.Candidatura
+
+@{
+    ViewData["Title"] = "Detalhes da Candidatura";
+
+    var requerCorrecaoDocumentosFinais = Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao &&
+        Model.OrigemCorrecao == appErasmus.Models.EnumOrigemCorrecao.GRI && Model.Documentos != null &&
+        Model.Documentos.Any(d => d.CategoriaFK == "Participant Report");
+
+    // --- MAPEAMENTO DINÂMICO DE ÍCONES, CORES E TEXTOS FORMATADOS  ---
+    string classeIcone = "bi-hourglass-split";
+    string classeTexto = "text-warning";
+    string descricaoEstado = "A tua candidatura está a ser avaliada pelos serviços do IPT.";
+    string estadoTexto = Model.EstadoCandidatura.ToString();
+
+    switch (Model.EstadoCandidatura)
+    {
+        case appErasmus.Models.EnumEstadoCandidatura.EmConstrucao:
+            classeIcone = "bi-pencil-square";
+            classeTexto = "text-secondary";
+            descricaoEstado = "A tua candidatura ainda se encontra em modo de rascunho e não foi submetida.";
+            estadoTexto = "Rascunho";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.Submetida:
+            classeIcone = "bi-send-check";
+            classeTexto = "text-warning";
+            descricaoEstado = "Submetida com sucesso! Aguarda agora a validação do teu Coordenador de Curso.";
+            estadoTexto = "Submetida";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI:
+            classeIcone = "bi-hourglass-split";
+            classeTexto = "text-warning";
+            descricaoEstado = "Validada pelo Coordenador. Encontra-se em análise documental pelos serviços do GRI.";
+            estadoTexto = "Em Análise no GRI";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao:
+            classeIcone = "bi-arrow-counterclockwise";
+            classeTexto = "text-info";
+            descricaoEstado = "A candidatura foi devolvida para correção. Consulta as observações e corrige os dados necessários.";
+            estadoTexto = "Devolvida para Correção";
+            break;
+
+        case appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI:
+            classeIcone = "bi-box-seam";
+            classeTexto = "text-info";
+            estadoTexto = "Pós-Mobilidade (Em Análise)";
+            descricaoEstado = "Os teus documentos finais encontram-se em validação pelo GRI.";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.Aceite:
+        case appErasmus.Models.EnumEstadoCandidatura.Finalizado:
+            classeIcone = "bi-check-circle-fill";
+            classeTexto = "text-success";
+            descricaoEstado = "Parabéns! O teu pedido de mobilidade Erasmus foi formalmente aprovado e aceite.";
+            estadoTexto = "Candidatura Aprovada";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador:
+        case appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite:
+            classeIcone = "bi-x-circle-fill";
+            classeTexto = "text-danger";
+            descricaoEstado = "Infelizmente, o teu pedido de mobilidade foi recusado. Podes contactar o GRI para mais detalhes.";
+            estadoTexto = "Processo Negado";
+            break;
+        case appErasmus.Models.EnumEstadoCandidatura.Desistencia:
+            classeIcone = "bi-dash-circle-fill";
+            classeTexto = "text-muted";
+            descricaoEstado = "Desististe formalmente deste processo de mobilidade institucional.";
+            estadoTexto = "Desistência";
+            break;
+    }
+}
+
+<div class="container-fluid pt-4 pb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-primary mb-0"><i class="bi bi-file-text me-2"></i>Candidatura de Mobilidade</h2>
+            <p class="text-muted mb-0">Última atualização em @Model.DataSubmissao.ToString("dd/MM/yyyy às HH:mm")</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary shadow-sm" asp-action="Index"><i class="bi bi-arrow-left me-1"></i> Voltar</a>
+
+            @if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmConstrucao){
+                <a class="btn btn-primary shadow-sm" asp-action="Edit" asp-route-id="@Model.Id"><i class="bi bi-pencil-square me-1"></i> Editar candidatura</a>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            
+            <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-primary"><i class="bi bi-building me-2"></i>Destino de Mobilidade</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Ano Letivo</div>
+                        <div class="col-sm-8 text-body">@Model.AnoLetivo</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Semestre</div>
+                        <div class="col-sm-8 text-body">
+                            @((int)Model.Semestre == 1 ? "1º Semestre (Inverno)" : (int)Model.Semestre == 2 ? "2º Semestre (Verão)" : "Ano Inteiro (Anual)")
+                        </div>
+                    </div>
+                    <hr class="opacity-10" />
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted fw-bold">Universidades de Destino</div>
+                        <div class="col-sm-8 text-body">
+                            @if (Model.CandidaturasUniversidades != null && Model.CandidaturasUniversidades.Any()) {
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach (var uniRelacao in Model.CandidaturasUniversidades.OrderBy(cu => cu.Preferencia)) {
+                                        <div>
+                                            <span class="badge bg-secondary rounded-pill me-2">@(uniRelacao.Preferencia)ª Opção</span>
+                                            @if (!string.IsNullOrWhiteSpace(uniRelacao.OutraUniversidade)) {
+                                                <span class="fw-semibold">@uniRelacao.OutraUniversidade</span>
+                                                <span class="text-body-secondary small">(Outra)</span>
+                                            } else {
+                                                <span class="fw-semibold">@uniRelacao.Universidade?.Nome</span>
+                                                <span class="text-body-secondary small">(@uniRelacao.UniversidadeFK)</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            } else {
+                                <span class="text-danger italic">Nenhum destino associado.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm bg-body-tertiary">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-primary"><i class="bi bi-translate me-2"></i>Competências Linguísticas</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Linguas != null && Model.Linguas.Any()) {
+                        <ul class="list-group list-group-flush bg-transparent">
+                            @foreach (var lingua in Model.Linguas) {
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent text-body border-secondary border-opacity-10">
+                                    <span class="fw-medium">@lingua.Lingua</span>
+                                    <span class="badge bg-primary rounded-pill">Nível @lingua.Nivel</span>
+                                </li>
+                            }
+                        </ul>
+                    } else {
+                        <p class="text-body-secondary mb-0"><i class="bi bi-info-circle me-1"></i> Não foram declaradas línguas estrangeiras.</p>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <!-- 1. ESTADO DO PROCESSO -->
+            <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+                <div class="card-body text-center p-4">
+                    <h6 class="fw-bold text-uppercase text-body-secondary mb-3" style="font-size: 0.85rem; letter-spacing: 0.5px;">Estado do Processo</h6>
+
+                    <div class="@classeTexto display-4 mb-2">
+                        <i class="bi @classeIcone"></i>
+                    </div>
+                    <h5 class="@classeTexto fw-bold mb-2">@estadoTexto</h5>
+                    <p class="text-body-secondary small mb-0">@descricaoEstado</p>
+                    
+                    @if (TempData["MensagemSucesso"] != null) {
+                        <hr class="opacity-10 mt-3 mb-3" />
+                        <div class="alert alert-success py-2 small fw-bold mb-0 text-start shadow-sm">
+                            <i class="bi bi-check-circle me-2"></i>@TempData["MensagemSucesso"]
+                        </div>
+                    }
+                    @if (TempData["Erro"] != null) {
+                        <hr class="opacity-10 mt-3 mb-3" />
+                        <div class="alert alert-danger py-2 small fw-bold mb-0 text-start shadow-sm">
+                            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Erro"]
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- 2. AVISOS DE CORREÇÃO / OBSERVAÇÕES -->
+            @if (Model.EstadoCandidatura == EnumEstadoCandidatura.DevolvidaParaCorrecao || Model.OrigemCorrecao != EnumOrigemCorrecao.None) {
+                <div class="card border-0 shadow-sm mb-4 bg-body-tertiary border-start border-4 border-warning">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-body-secondary text-uppercase mb-3">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>Candidatura devolvida para correção
+                        </h6>
+
+                        <p class="mb-2 text-body">
+                            <strong>Devolvida por:</strong>
+                            @(Model.OrigemCorrecao == appErasmus.Models.EnumOrigemCorrecao.GRI
+                                ? "GRI"
+                                : "Coordenador Erasmus")
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.MotivoRejeicao)) {
+                            <p class="mb-3 text-body">
+                                <strong>Motivo:</strong>
+                                @Model.MotivoRejeicao
+                            </p>
+                        }
+
+                        @if (requerCorrecaoDocumentosFinais){
+                            <a href="#pos-mobilidade" class="btn btn-info text-dark fw-bold shadow-sm rounded-pill px-4"> <i class="bi bi-file-earmark-arrow-up me-2"></i>Corrigir documentos finais</a>
+                        } else { 
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning fw-bold shadow-sm rounded-pill px-4"> <i class="bi bi-pencil-square me-2"></i> Corrigir candidatura</a>
+                        }
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.MotivoRejeicao)) {
+                <div class="card border-0 shadow-sm mb-4 bg-body-tertiary border-start border-4 border-warning">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-body-secondary text-uppercase mb-3">
+                            <i class="bi bi-chat-left-text me-2"></i>Observações da Decisão
+                        </h6>
+                        <p class="mb-0 text-body">
+                            @Model.MotivoRejeicao
+                        </p>
+                    </div>
+                </div>
+            }
+
+            <!-- 3. PAINEL DE PÓS-MOBILIDADE COMPACTO (Apenas visível se o processo estiver Aceite) -->
+            @if (Model.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Aceite || requerCorrecaoDocumentosFinais) {
+                <div id="pos-mobilidade" class="card border-0 shadow-sm mb-4 border-start border-4 border-info bg-body-tertiary">
+                    <div class="card-body" >
+                        <h6 class="fw-bold text-info text-uppercase mb-3">
+                            <i class="bi bi-airplane-engines me-2"></i>Pós-Mobilidade
+                        </h6>
+                        <p class="text-body-secondary small mb-3">
+                            Já regressaste de Erasmus? Submete aqui o teu documento final obrigatório para podermos concluir o teu processo.
+                        </p>
+
+                        <form asp-controller="Candidaturas" asp-action="SubmeterDadosFinais" method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+
+                            <!-- DOCUMENTO 1: Participant Report -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-body mb-1">Participant Report</label>
+                                <input type="file" name="ficheiroParticipantReport" class="form-control form-control-sm" required accept=".pdf" />
+                                <div class="form-text text-body-secondary" style="font-size: 0.72rem;">Relatório de participante preenchido (PDF).</div>
+                            </div>
+
+                            <button type="submit"
+                                    class="btn btn-info text-dark w-100 fw-bold shadow-sm mt-2"
+                                    onclick="return confirm('Confirmas a entrega do teu Participant Report final?');">
+                                <i class="bi bi-send-check me-2"></i>
+                                @(requerCorrecaoDocumentosFinais ? "Ressubmeter Documento" : "Submeter Documento")
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            <!-- 4. DADOS FINANCEIROS -->
+            <div class="card border-0 shadow-sm bg-body-tertiary">
+                <div class="card-body">
+                    <h6 class="fw-bold text-body-secondary text-uppercase mb-3"><i class="bi bi-bank me-2"></i>Dados Financeiros</h6>
+
+                    <p class="mb-1 fw-bold text-body-secondary small">Estatuto de Bolseiro:</p>
+                    @if (Model.Bolseiro) {
+                        <p><span class="badge bg-info text-dark px-3 py-1 fw-bold"><i class="bi bi-check-lg me-1"></i> Sim (Declarado)</span></p>
+                    }
+                    else {
+                        <p><span class="badge bg-secondary px-3 py-1">Não</span></p>
+                    }
+
+                    <p class="mb-1 fw-bold text-body-secondary small mt-3">IBAN Associado:</p>
+                    <p class="font-monospace bg-body-secondary text-body p-2 rounded border border-secondary border-opacity-10 mb-0 text-center small text-break">@Model.IBAN</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-primary">
+                        <i class="bi bi-paperclip me-2"></i>Documentos da Candidatura
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    @if (Model.Documentos != null && Model.Documentos.Any()) {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr class="text-body-secondary small border-bottom">
+                                        <th>Tipo</th>
+                                        <th>Descrição</th>
+                                        <th>Ficheiro</th>
+                                        <th>Data</th>
+                                        <th class="text-end">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-body">
+                                    @foreach (var documento in Model.Documentos.OrderByDescending(d => d.DataCriacao)) {
+                                        <tr class="border-bottom border-secondary border-opacity-10">
+                                            <td class="fw-semibold text-body">@documento.CategoriaFK</td>
+                                            <td>
+                                                @if (!string.IsNullOrWhiteSpace(documento.DescricaoDocumento)) {
+                                                    @documento.DescricaoDocumento
+                                                } else {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td class="text-break text-body-secondary small">@documento.NomeOriginal</td>
+                                            <td class="text-body-secondary small">@documento.DataCriacao.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td class="text-end">
+                                                <a class="btn btn-sm btn-outline-primary rounded-pill px-3" asp-action="DownloadDocumento" asp-route-documentoId="@documento.Id">
+                                                    <i class="bi bi-download me-1"></i> Download
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    } else {
+                        <div class="alert alert-light border border-secondary border-opacity-10 mb-0 bg-transparent text-body-secondary">
+                            <i class="bi bi-info-circle me-2"></i> Ainda não foram adicionados documentos a esta candidatura.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

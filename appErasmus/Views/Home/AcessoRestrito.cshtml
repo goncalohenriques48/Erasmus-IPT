@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Acesso Restrito";
+}
+
+<div class="container text-center py-5 my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 bg-body-tertiary p-5 rounded shadow-sm border border-secondary border-opacity-10">
+
+            <div class="display-1 text-danger mb-3">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+
+            <h2 class="fw-bold text-primary mb-3">Acesso Não Autorizado</h2>
+
+            <p class="text-body-secondary mb-4" style="line-height: 1.6;">
+                Não tem as permissões institucionais necessárias para visualizar esta página, consultar este processo de candidatura ou descarregar este documento.
+            </p>
+
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                    <i class="bi bi-house-door me-2"></i>Voltar à Página Inicial
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>

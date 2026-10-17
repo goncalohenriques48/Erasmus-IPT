@@ -1,0 +1,43 @@
+﻿@{
+    ViewData["Title"] = "Política de Privacidade";
+}
+
+<div class="container-fluid pt-3 pb-5">
+
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white rounded p-3 me-3 shadow-sm">
+            <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+        </div>
+        <div>
+            <h1 class="display-6 fw-bold text-primary mb-0">@ViewData["Title"]</h1>
+            <p class="text-muted mb-0">Instituto Politécnico de Tomar</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+        <div class="card-body p-4 p-md-5">
+
+            <p class="lead text-body mb-4">
+                O portal <strong>appErasmus</strong> rege-se integralmente pela Política de Privacidade e Proteção de Dados oficial do Instituto Politécnico de Tomar (IPT), em total conformidade com o RGPD.
+            </p>
+
+            <!-- Leitor de PDF Embutido -->
+            <div class="ratio ratio-16x9 mb-4 border rounded shadow-sm overflow-hidden" style="min-height: 600px;">
+                <!-- O browser vai renderizar o PDF diretamente aqui graças ao alojamento local na pasta wwwroot -->
+                <iframe src="~/docs/PoliticaPrivacidade_IPT.pdf" title="Política de Privacidade do IPT" allowfullscreen></iframe>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                <a href="~/docs/PoliticaPrivacidade_IPT.pdf" download="Politica_Privacidade_IPT.pdf" class="btn btn-outline-primary">
+                    <i class="bi bi-download me-2"></i>Descarregar Documento
+                </a>
+
+                <div class="text-end">
+                    <h6 class="fw-bold text-body mb-1">Dúvidas sobre a tua privacidade?</h6>
+                    <p class="text-muted mb-0">Contacta o Encarregado da Proteção de Dados: <a href="mailto:epd@ipt.pt" class="fw-bold text-decoration-none">epd@ipt.pt</a></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,273 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "O Meu Perfil";
+    // Isto diz ao ASP.NET: "Ignora a pasta Manage e os seus menus, usa o layout principal da App!"
+    Layout = "/Views/Shared/_Layout.cshtml"; 
+
+    var FirstLogin = TempData["FirstLogin"] as string;
+
+}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<h3 class="fw-bold text-primary mb-4"><i class="bi bi-person-lines-fill me-2"></i>@ViewData["Title"]</h3>
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+@if (FirstLogin == "true")
+{
+    <div class="modal fade" id="primeiroLoginModal" tabindex="-1" aria-labelledby="primeiroLoginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="primeiroLoginModalLabel">
+                        <i class="bi bi-info-circle me-2"></i> Completar perfil
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="mb-0">
+                        Para prosseguir com a submissão de candidaturas, o perfil deve estar completo com os dados pessoais e académicos necessários.
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        Compreendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+} 
+
+<div class="row justify-content-center pt-3">
+    <div class="col-md-10 col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form id="profile-form" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="form-floating mb-3">
+                        <input asp-for="Username" class="form-control" disabled />
+                        <label asp-for="Username" class="form-label">Email de Acesso (Login)</label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input asp-for="Input.NomeCompleto" class="form-control" disabled />
+                        <label asp-for="Input.NomeCompleto" class="form-label"></label>
+                        <span asp-validation-for="Input.NomeCompleto" class="text-danger small"></span>
+                    </div>
+
+                    @* SÓ MOSTRA ESTES CAMPOS SE O UTILIZADOR FOR UM ALUNO *@
+                    @if (Model.Input.IsAluno)
+                    {
+                        <hr class="text-muted opacity-25 my-4" />
+                        <h5 class="fw-bold text-secondary mb-3">Dados Académicos e Pessoais</h5>
+                        
+                        <input type="hidden" asp-for="Input.IsAluno" />
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.NumeroAluno" class="form-control" disabled />
+                                    <label asp-for="Input.NumeroAluno"></label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.AnoCurricular" class="form-control" type="number" min="1" max="5" required />
+                                    <label asp-for="Input.AnoCurricular"></label>
+                                    <span asp-validation-for="Input.AnoCurricular" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.CursosFK" class="form-label fw-bold"></label>
+
+                            <select asp-for="Input.CursosFK"
+                                    class="form-select select2-curso"
+                                    asp-items="Model.Cursos"
+                                    multiple="multiple"
+                                    required>
+                            </select>
+
+                            <span asp-validation-for="Input.CursosFK" class="text-danger small"></span>
+                            <div class="form-text">
+                                Podes selecionar um ou mais cursos. Pesquisa por nome, código, escola ou grau.
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.NIF" class="form-control" placeholder="999999999" required />
+                            <label asp-for="Input.NIF"></label>
+                            <span asp-validation-for="Input.NIF" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select asp-for="Input.TipoDocumento" class="form-select" asp-items="Html.GetEnumSelectList<appErasmus.Models.EnumTipoDocumentoIdentificacao>()" required></select>
+                                    <label asp-for="Input.TipoDocumento"></label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.NumeroDocumento" class="form-control" required />
+                                    <label asp-for="Input.NumeroDocumento"></label>
+                                    <span asp-validation-for="Input.NumeroDocumento" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="update-profile-button" type="submit" class="btn btn-primary btn-lg w-100 shadow-sm fw-bold">
+                            <i class="bi bi-floppy me-2"></i> Guardar Alterações
+                        </button>
+                    }
+                    @if (Model.IsCoordenador)
+                    {
+                        <hr class="text-muted opacity-25 my-4" />
+
+                        <h5 class="fw-bold text-secondary mb-3">
+                            <i class="bi bi-mortarboard me-2"></i>
+                            Cursos atribuídos como Coordenador Erasmus
+                        </h5>
+
+                        @if (Model.CursosCoordenados.Any())
+                        {
+                            <div class="list-group mb-4">
+                                @foreach (var curso in Model.CursosCoordenados)
+                                {
+                                    <div class="list-group-item">
+                                        <div class="fw-bold">
+                                            @curso.CodigoCurso - @curso.NomeCurso
+                                        </div>
+                                        <div class="text-muted small">
+                                            @curso.Escola · @curso.Grau
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        } else {
+                            <div class="alert alert-info mb-4">
+                                Ainda não tem cursos atribuídos como Coordenador Erasmus.
+                            </div>
+                        }
+                    } 
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        // --- FUNÇÃO INTELIGENTE DE PESQUISA PARA CURSOS ---
+        function pesquisaComEscola(params, data) {
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+
+            if (typeof data.text === 'undefined') {
+                return null;
+            }
+
+            const termoPesquisa = params.term.toLowerCase();
+            const textoItem = data.text.toLowerCase();
+
+            // Pesquisa no texto do curso: código, nome, grau
+            if (textoItem.indexOf(termoPesquisa) > -1) {
+                return data;
+            }
+
+            // Pesquisa no grupo: escola
+            if (data.element &&
+                data.element.parentElement &&
+                data.element.parentElement.tagName === 'OPTGROUP') {
+
+                const nomeGrupo = data.element.parentElement.label.toLowerCase();
+
+                if (nomeGrupo.indexOf(termoPesquisa) > -1) {
+                    return data;
+                }
+            }
+
+            // Pesquisa dentro dos filhos quando o item avaliado é um grupo
+            if (data.children && data.children.length > 0) {
+                const grupoCopiado = $.extend(true, {}, data);
+                const cursosFiltrados = [];
+
+                for (let i = 0; i < grupoCopiado.children.length; i++) {
+                    const curso = grupoCopiado.children[i];
+
+                    if (curso.text.toLowerCase().indexOf(termoPesquisa) > -1) {
+                        cursosFiltrados.push(curso);
+                    }
+                }
+
+                if (cursosFiltrados.length > 0) {
+                    grupoCopiado.children = cursosFiltrados;
+                    return grupoCopiado;
+                }
+            }
+
+            return null;
+        } 
+
+        $('.select2-curso').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: "Pesquisa e seleciona um ou mais cursos...",
+            matcher: pesquisaComEscola,
+            closeOnSelect: false
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const selectTipo = document.getElementById("Input_TipoDocumento");
+            const inputNumero = document.getElementById("Input_NumeroDocumento");
+
+            function atualizarValidacaoDocumento() {
+                if (!selectTipo || !inputNumero) return;
+
+                // Lê o texto que o utilizador escolheu na Dropdown
+                const tipoTexto = selectTipo.options[selectTipo.selectedIndex].text;
+
+                if (tipoTexto.includes("Cidadão")) {
+                    inputNumero.maxLength = 12;
+                    inputNumero.placeholder = "Ex: 123456789ZZ9";
+                } else {
+                    // Passaporte ou Título de Residência
+                    inputNumero.maxLength = 20;
+                    inputNumero.placeholder = "Ex: PA123456 / C12345";
+                }
+            }
+
+            if (selectTipo) {
+                // Fica à escuta: Sempre que o aluno mudar a dropdown, a função corre!
+                selectTipo.addEventListener("change", atualizarValidacaoDocumento);
+                
+                // Corre a função logo ao iniciar a página para configurar o estado inicial
+                atualizarValidacaoDocumento(); 
+            }
+        });
+    </script>
+    @if (FirstLogin == "true")
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const modalElement = document.getElementById("primeiroLoginModal");
+
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
+            });
+        </script>
+    }
+}

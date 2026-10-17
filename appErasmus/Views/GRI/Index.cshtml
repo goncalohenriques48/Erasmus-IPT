@@ -1,0 +1,164 @@
+@model IEnumerable<appErasmus.Models.Candidatura>
+
+@{
+    ViewData["Title"] = "Gestão de Candidaturas";
+}
+
+<div class="container-fluid pt-4 pb-5">
+
+    <!-- CABEÇALHO -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-0"><i class="bi bi-briefcase me-2"></i>Gestão de Candidaturas</h2>
+            <p class="text-body-secondary mb-0">Área reservada ao GRI para análise e validação regulamentar das candidaturas.</p>
+        </div>
+    </div>
+
+    <!-- PAINEL PRINCIPAL -->
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 bg-transparent" id="tabelaCandidaturas">
+
+                    <thead>
+                        <tr class="text-body-secondary small border-bottom">
+                            <th class="ps-4 py-3">Aluno</th>
+                            <th>Data Submissão</th>
+                            <th>Ano / Semestre</th>
+                            <th>Bolseiro</th>
+                            <th>Estado</th>
+                            <th class="text-end pe-4">Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (!Model.Any()) {
+                            <tr>
+                                <!-- colspan="6" para cobrir exatamente as colunas do GRI -->
+                                <td colspan="6" class="text-center py-4 text-body-secondary">
+                                    <i class="bi bi-folder-x fs-4 d-block mb-2 text-muted"></i>
+                                    Não existem candidaturas pendentes no sistema.
+                                </td>
+                            </tr>
+                        }
+                        else {
+                            @foreach (var item in Model) {
+                                @* No GRI, a ação é requerida na fase Inicial (4) OU na fase Final de Regresso (8) *@
+                                bool requerAcao = item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI ||
+                                                  item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI;
+
+                                <tr class="border-bottom border-secondary border-opacity-10">
+
+                                    <!-- Indicador vertical de 4px em vez da linha toda pintada de amarelo -->
+                                    <td class="ps-4 py-3 @(requerAcao ? "border-start border-4 border-warning" : "")">
+                                        <span class="fw-bold text-primary">@item.Aluno.NomeCompleto</span>
+                                        @if (requerAcao) {
+                                            <span class="badge bg-danger ms-2 shadow-sm"><i class="bi bi-exclamation-circle me-1"></i> Ação Requerida</span>
+                                        }
+                                        <br />
+                                        <small class="text-body-secondary">@item.Aluno.Email</small>
+                                    </td>
+
+                                    <td class="text-body-secondary">@item.DataSubmissao.ToString("dd/MM/yyyy HH:mm")</td>
+
+                                    <td class="text-body">
+                                        @item.AnoLetivo -
+                                        <span class="small text-body-secondary">
+                                            @((int)item.Semestre == 1 ? "1º Sem" : (int)item.Semestre == 2 ? "2º Sem" : "Anual")
+                                        </span>
+                                    </td>
+
+                                    <!-- COLUNA ADICIONAL DO GRI (Otimizada para contraste) -->
+                                    <td>
+                                        @if (item.Bolseiro) {
+                                            <span class="badge bg-info text-dark px-3 py-1 fw-bold shadow-sm">Sim</span>
+                                        } else {
+                                            <span class="text-body-secondary small">Não</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Submetida) {
+                                            <!-- Quando ainda está do lado do Coordenador, o GRI vê isto: -->
+                                            <span class="badge bg-secondary px-2 py-1.5"><i class="bi bi-person-gear me-1"></i> Aguardar Coord.</span>
+                                        }
+                                        else if (item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseGRI) {
+                                            <!-- Quando chega finalmente ao GRI (Ação Requerida), passa a ser isto: -->
+                                            <span class="badge bg-warning text-dark px-2 py-1.5"><i class="bi bi-search me-1"></i> Em Análise (GRI)</span>
+                                        }
+                                        else if (item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.EmAnaliseFinalGRI) {
+                                            <span class="badge bg-info text-dark px-2 py-1.5"><i class="bi bi-box-seam me-1"></i> Pós-Mobilidade</span>
+                                        }
+                                        else if (item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Aceite) {
+                                            <span class="badge bg-success px-2 py-1.5"><i class="bi bi-airplane me-1"></i> Em Mobilidade</span>
+                                        }
+                                        else if (item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.Finalizado) {
+                                            <span class="badge bg-success px-2 py-1.5"><i class="bi bi-check-circle me-1"></i> Finalizado</span>
+                                        }
+                                        else if (item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.RejeitadaCoordenador || item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.RejeitadaNaoAceite) {
+                                            <span class="badge bg-danger px-2 py-1.5"><i class="bi bi-x-circle me-1"></i> Rejeitada</span>
+                                        }
+                                        else if (item.EstadoCandidatura == appErasmus.Models.EnumEstadoCandidatura.DevolvidaParaCorrecao || item.OrigemCorrecao != appErasmus.Models.EnumOrigemCorrecao.None)
+{
+                                            <span class="badge bg-info text-dark px-2 py-1.5">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i> Devolvida para Correção
+                                            </span>
+                                        }
+                                        else {
+                                            <span class="badge bg-secondary px-2 py-1.5">@item.EstadoCandidatura</span>
+                                        }
+                                    </td>
+
+                                    
+                                    <td class="text-end pe-4">
+                                        @if (requerAcao) {
+                                            <a class="btn btn-sm btn-primary shadow-sm px-3 rounded-pill fw-bold" asp-controller="GRI" asp-action="Details" asp-route-id="@item.Id">
+                                                Avaliar <i class="bi bi-arrow-right-short ms-1"></i>
+                                            </a>
+                                        }
+                                        else {
+                                            <a class="btn btn-sm btn-outline-primary shadow-sm px-3 rounded-pill" asp-controller="GRI" asp-action="Details" asp-route-id="@item.Id">
+                                                Ver <i class="bi bi-eye ms-1"></i>
+                                            </a>
+                                        }
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- CSS do DataTables integrado com o Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
+    <!-- JavaScript do DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+        $('#tabelaCandidaturas').DataTable({
+        // Tradução oficial para Português de Portugal
+        language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-PT.json',
+        },
+        // Ordenar por defeito pela 2ª coluna (Data de Submissão - índice 1) de forma descendente
+        order: [[1, 'desc']],
+        // Quantidade de registos por página
+        pageLength: 10,
+        // Opções de paginação disponíveis para o utilizador
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        // Remove a ordenação automática da última coluna (Ações) pois não faz sentido ordenar por botões
+        columnDefs: [
+        { orderable: false, targets: -1 }
+        ]
+        });
+        });
+    </script>
+}

@@ -1,0 +1,740 @@
+@model appErasmus.Controllers.CandidaturaFormViewModel
+
+@{
+    ViewData["Title"] = "Nova Candidatura";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<div class="container-fluid pt-3 pb-5">
+    
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white rounded p-3 me-3 shadow-sm">
+            <i class="bi bi-airplane-engines" style="font-size: 2rem;"></i>
+        </div>
+        <div>
+            <h1 class="display-6 fw-bold text-primary mb-0">Iniciar Candidatura</h1>
+            <p class="text-body-secondary mb-0">Preenche os dados abaixo para submeteres o teu pedido de mobilidade.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+        <div class="card-body p-4 p-md-5">
+            
+            <form asp-action="Create" method="post" enctype="multipart/form-data" onsubmit="return validarFormulario()">
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger fw-bold mb-4 p-3 border border-danger rounded bg-danger bg-opacity-10"></div>
+                
+                <h5 class="fw-bold text-primary mb-4">
+                    <i class="bi bi-person-badge me-2"></i>Dados do Aluno
+                </h5>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNomeCompleto" disabled />
+                            <label>Nome Completo</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilEmail" disabled />
+                            <label>Email</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNumeroAluno" disabled />
+                            <label>Número de Aluno</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilAnoCurricular" disabled />
+                            <label>Ano Curricular</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNIF" disabled />
+                            <label>NIF</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-floating">
+                            <select asp-for="CursoFK" class="form-select" id="cursoSelect" required>
+                                <option value="">-- Seleciona o curso associado a esta candidatura --</option>
+                                @foreach (var curso in ViewBag.CursosAluno)
+                                {
+                                    <option value="@curso.Id" selected="@(curso.Selected ? "selected" : null)" data-escola="@curso.Escola" data-grau="@curso.Grau">
+                                        @curso.Nome
+                                    </option>
+                                }
+                            </select>
+                            <label asp-for="CursoFK">Curso associado à candidatura</label>
+                            <span asp-validation-for="CursoFK" class="text-danger small"></span>
+                        </div>
+
+                        @if (ViewBag.TotalCursosAluno != null && ViewBag.TotalCursosAluno > 1)
+                        {
+                            <div class="form-text mt-1 text-body-secondary">
+                                Tens mais do que um curso no perfil. Escolhe qual deles deve ficar associado a esta candidatura Erasmus.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row g-3 mt-1 mb-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" id="cursoEscola" class="form-control" disabled />
+                                <label>Escola</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" id="cursoGrau" class="form-control" disabled />
+                                <label>Grau / Tipologia</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilTipoDocumento" disabled />
+                            <label>Tipo de Documento</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input class="form-control" value="@ViewBag.PerfilNumeroDocumento" disabled />
+                            <label>Número do Documento</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25" />
+                <h5 class="fw-bold text-primary mb-4"><i class="bi bi-info-circle me-2"></i>Dados da Mobilidade</h5>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select asp-for="AnoLetivo" class="form-select" id="anoLetivoSelect" asp-items="ViewBag.AnosLetivos" required>
+                                <option value="" disabled selected>Seleciona o Ano Letivo</option>
+                            </select>
+                            <label asp-for="AnoLetivo">Ano Letivo</label>
+                            <span asp-validation-for="AnoLetivo" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label text-muted small fw-bold mb-2">Período de Mobilidade</label>
+                        <div class="d-flex gap-4 flex-wrap text-body">
+                            <div class="form-check">
+                                <input asp-for="Semestre" class="form-check-input" type="radio" value="1" id="semestre1" checked>
+                                <label class="form-check-label" for="semestre1">1º Semestre (Inverno)</label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="Semestre" class="form-check-input" type="radio" value="2" id="semestre2">
+                                <label class="form-check-label" for="semestre2">2º Semestre (Verão)</label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="Semestre" class="form-check-input" type="radio" value="3" id="semestre3">
+                                <label class="form-check-label" for="semestre3">Ano Inteiro (Anual)</label>
+                            </div>
+                        </div>
+                        <span asp-validation-for="Semestre" class="text-danger small"></span>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25" />
+
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-building me-2"></i>Destino de Mobilidade</h5>
+
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <div class="border border-primary border-2 rounded p-3 bg-body">
+                                <label class="fw-bold text-primary mb-2">1ª Opção (Obrigatória)</label>
+                                <select name="universidade1" id="uni1" class="form-select select2-universidade" asp-items="ViewBag.Universidades" required>
+                                    <option value="" disabled selected>-- Pesquisa e seleciona a tua 1ª Escolha --</option>
+                                </select>
+                                <input type="text" name="universidade1Other" id="uni1Other" class="form-control mt-2 d-none" placeholder="Escreve o nome da universidade" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-2">
+                                <label class="fw-bold text-muted mb-2">2ª Opção (Facultativa)</label>
+                                <select name="universidade2" id="uni2" class="form-select select2-universidade" asp-items="ViewBag.Universidades">
+                                    <option value="" selected>-- Facultativo --</option>
+                                </select>
+                                <input type="text" name="universidade2Other" id="uni2Other" class="form-control mt-2 d-none" placeholder="Escreve o nome da universidade" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-2">
+                                <label class="fw-bold text-muted mb-2">3ª Opção (Facultativa)</label>
+                                <select name="universidade3" id="uni3" class="form-select select2-universidade" asp-items="ViewBag.Universidades">
+                                    <option value="" selected>-- Facultativo --</option>
+                                </select>
+                                <input type="text" name="universidade3Other" id="uni3Other" class="form-control mt-2 d-none" placeholder="Escreve o nome da universidade" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25" />
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-translate me-2"></i>Domínio de Línguas Estrangeiras</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill shadow-sm" id="btnAdicionarLingua">
+                            <i class="bi bi-plus-circle me-1"></i> Adicionar Língua
+                        </button>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div id="linguasContainer"></div>
+                        <div id="linguasEmptyState" class="text-center p-4 border border-dashed rounded bg-body-tertiary text-muted">
+                            <i class="bi bi-chat-square-text fs-3 mb-2"></i>
+                            <p class="mb-0">Ainda não adicionaste nenhuma língua. Clica no botão acima!</p>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4 text-muted opacity-25" />
+
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-bank me-2"></i>Dados Financeiros</h5>
+
+                    <div class="col-md-12 mb-2">
+                        <div class="form-check form-switch fs-5 text-body">
+                            <input asp-for="Bolseiro" class="form-check-input" type="checkbox" id="bolseiroSwitch">
+                            <label class="form-check-label ms-2" for="bolseiroSwitch">Sou bolseiro da DGES / SAS</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-floating">
+                            <input asp-for="IBAN" class="form-control" maxlength="50" placeholder="PT50..." />
+                            <label asp-for="IBAN">IBAN (Para pagamento da Bolsa Erasmus)</label>
+                            <span asp-validation-for="IBAN" class="text-danger small"></span>
+                            <div class="form-text mt-2 text-body-secondary"><i class="bi bi-shield-lock me-1"></i>O teu IBAN será guardado de forma segura e utilizado apenas pelo GRI.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25" />
+                <h5 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-paperclip me-2"></i>Documentos da Candidatura
+                </h5>
+
+                <div class="border rounded p-3 bg-body-secondary mb-4 border-secondary border-opacity-10">
+                    <div id="documentosContainer">
+                        <div class="documento-row row g-3 align-items-end mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-body small">Tipo de Documento</label>
+                                <select name="categoriasDocumento" class="form-select categoria-documento">
+                                    <option value="">-- Seleciona o tipo --</option>
+                                    @foreach (var categoria in ViewBag.CategoriasDocumentos)
+                                    {
+                                        <option value="@categoria.Value">@categoria.Text</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 descricao-outro-wrapper d-none">
+                                <label class="form-label fw-bold text-body small">Nome do Documento</label>
+                                <input type="text" name="descricoesDocumento" class="form-control descricao-documento" maxlength="150" placeholder="Ex: Declaração adicional" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-body small">Ficheiro</label>
+                                <input type="file" name="ficheirosDocumento" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.docx" />
+                            </div>
+
+                            <div class="col-md-1 text-end">
+                                <button type="button" class="btn btn-outline-danger remover-documento d-none">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="adicionarDocumento" class="btn btn-outline-primary btn-sm fw-bold">
+                        <i class="bi bi-plus-circle me-1"></i> Adicionar outro documento
+                    </button>
+
+                    <div class="form-text mt-2 text-body-secondary">
+                        Formatos aceites: PDF, JPG, PNG ou DOCX. Máximo: 10 MB por ficheiro.
+                    </div>
+                </div>
+                
+                <hr class="my-4 text-muted opacity-25" />
+
+                <div class="mt-5 d-flex flex-column flex-md-row gap-3">
+                    <button type="submit" name="botaoAcao" value="submeter" class="btn btn-primary btn-lg fw-bold shadow-sm px-md-5">
+                        <i class="bi bi-send me-2"></i> Submeter Candidatura
+                    </button>
+
+                    <button type="submit" name="botaoAcao" value="rascunho" class="btn btn-outline-primary btn-lg fw-bold shadow-sm px-md-4">
+                        <i class="bi bi-bookmark me-2"></i> Guardar Rascunho
+                    </button>
+                    
+                    <a asp-action="Index" class="btn btn-light btn-lg shadow-sm border">Cancelar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+        const appConfig = {
+            linguasCount: @(Model?.Linguas?.Count ?? 0),
+            outraUniCodes: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.OutraUniversidadeCodes ?? new List<string>())),
+            uni1Selecionada: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Uni1Selecionada ?? "")),
+            uni2Selecionada: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Uni2Selecionada ?? "")),
+            uni3Selecionada: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Uni3Selecionada ?? ""))
+        };
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const cursoSelect = document.getElementById("cursoSelect");
+            const cursoEscola = document.getElementById("cursoEscola");
+            const cursoGrau = document.getElementById("cursoGrau");
+
+            const categoriaDocumento = document.getElementById("categoriaDocumento");
+            const descricaoOutroWrapper = document.getElementById("descricaoOutroWrapper");
+            const descricaoDocumento = document.getElementById("descricaoDocumento");
+
+            function atualizarDadosCurso() {
+                if (!cursoSelect || !cursoEscola || !cursoGrau) return;
+                const optionSelecionada = cursoSelect.options[cursoSelect.selectedIndex];
+                if (!optionSelecionada || !optionSelecionada.value) {
+                    cursoEscola.value = "";
+                    cursoGrau.value = "";
+                    return;
+                }
+                cursoEscola.value = optionSelecionada.getAttribute("data-escola") || "";
+                cursoGrau.value = optionSelecionada.getAttribute("data-grau") || "";
+            }
+
+            function atualizarDescricaoOutro() {
+                if (!categoriaDocumento || !descricaoOutroWrapper || !descricaoDocumento) {
+                    return;
+                }
+
+                if (categoriaDocumento.value === "Outro") {
+                    descricaoOutroWrapper.classList.remove("d-none");
+                    descricaoDocumento.required = true;
+                } else {
+                    descricaoOutroWrapper.classList.add("d-none");
+                    descricaoDocumento.required = false;
+                    descricaoDocumento.value = "";
+                }
+            }
+
+            if (categoriaDocumento) {
+                categoriaDocumento.addEventListener("change", atualizarDescricaoOutro);
+                atualizarDescricaoOutro();
+            } 
+
+            cursoSelect.addEventListener("change", atualizarDadosCurso);
+            atualizarDadosCurso();
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const outraUniversidadeCodes = appConfig.outraUniCodes;
+            const container = document.getElementById("linguasContainer");
+            const emptyState = document.getElementById("linguasEmptyState");
+
+            function pesquisaComPais(params, data) {
+                if ($.trim(params.term) === '') return data;
+                if (typeof data.text === 'undefined') return null;
+                const termoPesquisa = params.term.toLowerCase();
+                const textoItem = data.text.toLowerCase();
+                if (textoItem.indexOf(termoPesquisa) > -1) return data;
+
+                if (data.element && data.element.parentElement && data.element.parentElement.tagName === 'OPTGROUP') {
+                    const nomeGrupo = data.element.parentElement.label.toLowerCase();
+                    if (nomeGrupo.indexOf(termoPesquisa) > -1) return data;
+                }
+
+                if (data.children && data.children.length > 0) {
+                    const grupoCopiado = $.extend(true, {}, data);
+                    const universidadesFiltradas = [];
+                    for (let i = 0; i < grupoCopiado.children.length; i++) {
+                        const universidade = grupoCopiado.children[i];
+                        if (universidade.text.toLowerCase().indexOf(termoPesquisa) > -1) {
+                            universidadesFiltradas.push(universidade);
+                        }
+                    }
+                    if (universidadesFiltradas.length > 0) {
+                        grupoCopiado.children = universitiesFiltradas;
+                        return grupoCopiado;
+                    }
+                }
+                return null;
+            }
+
+            $('.select2-universidade').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: "Pesquisa por nome ou país...",
+                matcher: pesquisaComPais 
+            });
+
+            function isOutraUniversidade(value) {
+                return outraUniversidadeCodes.includes(value);
+            }
+
+            const paresUniversidadeOutra = [
+                { selectId: 'uni1', inputId: 'uni1Other' },
+                { selectId: 'uni2', inputId: 'uni2Other' },
+                { selectId: 'uni3', inputId: 'uni3Other' }
+            ];
+
+            function atualizarCampoOutraUniversidade(selectId, inputId, permitirLimpar = true) {
+                const sel = document.getElementById(selectId);
+                const input = document.getElementById(inputId);
+                if (!sel || !input) return;
+
+                let isOutra = isOutraUniversidade(sel.value);
+                const idx = sel.selectedIndex;
+                if (!isOutra && idx >= 0 && sel.options[idx]) {
+                    const optionText = (sel.options[idx].text || '').toLowerCase();
+                    if (optionText.includes('outra') || optionText.includes('other')) isOutra = true;
+                }
+
+                if (isOutra) {
+                    input.classList.remove('d-none');
+                    input.required = true;
+                    input.disabled = false;
+                } else {
+                    input.classList.add('d-none');
+                    input.required = false;
+                    input.disabled = true;
+                    if (permitirLimpar) input.value = '';
+                }
+            }
+
+ 
+            // Percorre as 3 caixas, injeta o valor que falhou e atualiza o ecrã
+            paresUniversidadeOutra.forEach(({ selectId, inputId, valorInit, outraInit }) => {
+            const sel = document.getElementById(selectId);
+            const input = document.getElementById(inputId);
+            if (!sel) return;
+
+            // Se houver um valor guardado na ViewBag, força o Select2 a selecioná-lo!
+            if (valorInit) {
+            $(sel).val(valorInit).trigger('change.select2');
+            }
+
+            // Se houver texto escrito na caixa da "Outra Universidade", força a reescrever!
+            if (outraInit && input) {
+            input.value = outraInit;
+            }
+
+            // Quando o utilizador muda ativamente a dropdown, atualiza a caixa da "Outra"
+            $(sel).on('change select2:select', function() {
+            atualizarCampoOutraUniversidade(selectId, inputId, true);
+            });
+
+            // Atualiza o estado da caixa "Outra" logo no arranque (caso recarregue com erro)
+            atualizarCampoOutraUniversidade(selectId, inputId, false);
+            });
+        
+
+            // Código do IBAN
+            const ibanInput = document.getElementById("IBAN");
+            if (ibanInput) {
+                ibanInput.addEventListener("input", function () {
+                    let value = this.value.replace(/[\s\-]/g, '').toUpperCase();
+                    if (value.length === 0) return;
+                    if (!value.startsWith('PT') && /^[0-9]/.test(value)) {
+                         value = 'PT50' + value;
+                    }
+                    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                    this.value = formattedValue.substring(0, 42);
+                });
+            }
+
+            // =========================================================================
+            // VALIDAÇÃO DE IBAN EM TEMPO REAL (CLIENT-SIDE)
+            // =========================================================================
+        
+            // 1. Criamos a regra "validarIBAN" ensinando o jQuery a fazer a mesma matemática do nosso C#
+            $.validator.addMethod("validarIBAN", function (value, element) {
+                if (!value) return true; // Se estiver vazio, o [Required] normal é que apanha.
+            
+                let iban = value.replace(/\s/g, '').toUpperCase();
+            
+                // Valida estrutura geral
+                if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(iban)) {
+                    $.validator.messages.validarIBAN = "O formato do IBAN é inválido (usa apenas letras e números).";
+                    return false;
+                }
+            
+                let pais = iban.substring(0, 2);
+            
+                // Valida regras por país
+                if (pais === "PT") {
+                    if (!iban.startsWith("PT50")) {
+                        $.validator.messages.validarIBAN = "Os IBANs de contas portuguesas começam obrigatoriamente por 'PT50'.";
+                        return false;
+                    }
+                    if (iban.length !== 25) {
+                        $.validator.messages.validarIBAN = "Um IBAN português tem de ter 25 caracteres. O que inseriste tem " + iban.length + ".";
+                        return false;
+                    }
+                } else if (pais === "BR" && iban.length !== 29) {
+                    $.validator.messages.validarIBAN = "Um IBAN brasileiro tem de ter 29 caracteres. O que inseriste tem " + iban.length + ".";
+                    return false;
+                } else if (pais === "PL" && iban.length !== 28) {
+                    $.validator.messages.validarIBAN = "Um IBAN polaco tem de ter 28 caracteres. O que inseriste tem " + iban.length + ".";
+                    return false;
+                } else if (pais === "ES" && iban.length !== 24) {
+                    $.validator.messages.validarIBAN = "Um IBAN espanhol tem de ter 24 caracteres. O que inseriste tem " + iban.length + ".";
+                    return false;
+                }
+            
+                return true;
+            }, "IBAN inválido.");
+
+            // 2. Regra diretamente no input do IBAN!
+            $(function () {
+                $("#IBAN").rules("add", {
+                    validarIBAN: true
+                });
+            });
+
+            let linguaIndex = appConfig.linguasCount;
+            const btnAdicionar = document.getElementById("btnAdicionarLingua");
+
+            if (btnAdicionar && container) {
+                btnAdicionar.addEventListener("click", function () {
+                    if (emptyState) emptyState.style.display = 'none';
+                    const rowId = `linguaRow_${linguaIndex}`;
+                    const html = `
+                <div class="row g-3 align-items-start align-items-md-center mb-3 p-3 border rounded shadow-sm bg-body position-relative" id="${rowId}">
+                    <input type="hidden" name="Linguas.Index" value="${linguaIndex}" />
+                    <div class="col-md-5">
+                        <div class="form-floating">
+                            <select id="selectLingua_${linguaIndex}" name="Linguas[${linguaIndex}].Lingua" class="form-select" onchange="verificarOutra(this, ${linguaIndex})" required>
+                                <option value="" disabled selected>Selecionar...</option>
+                                <option value="Inglês">Inglês</option>
+                                <option value="Espanhol">Espanhol</option>
+                                <option value="Francês">Francês</option>
+                                <option value="Alemão">Alemão</option>
+                                <option value="Italiano">Italiano</option>
+                                <option value="Mandarim">Mandarim</option>
+                                <option value="Outra">Outra</option>
+                            </select>
+                            <label>Idioma</label>
+                        </div>
+                        <input type="text" id="inputOutra_${linguaIndex}" class="form-control mt-2 d-none" placeholder="Qual é a língua?" disabled>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-floating">
+                            <select name="Linguas[${linguaIndex}].Nivel" class="form-select" required>
+                                <option value="" disabled selected>Selecionar...</option>
+                                <option value="A1">A1 (Iniciação)</option>
+                                <option value="A2">A2 (Elementar)</option>
+                                <option value="B1">B1 (Intermédio)</option>
+                                <option value="B2">B2 (Independente)</option>
+                                <option value="C1">C1 (Avançado)</option>
+                                <option value="C2">C2 (Proficiente)</option>
+                            </select>
+                                <label>Nível (QECR)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-md-end text-center">
+                        <button type="button" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center" style="height: 58px;" onclick="removerLingua('${rowId}')" title="Remover Língua">
+                            <i class="bi bi-trash fs-5"></i>
+                        </button>
+                    </div>
+                </div>`;
+                    container.insertAdjacentHTML('beforeend', html);
+                    linguaIndex++;
+                });
+            }
+
+            window.verificarOutra = function(select, index) {
+                const inputOutra = document.getElementById(`inputOutra_${index}`);
+                if (!inputOutra) return;
+                if (select.value === "Outra") {
+                    select.removeAttribute("name");
+                    inputOutra.setAttribute("name", `Linguas[${index}].Lingua`);
+                    inputOutra.classList.remove("d-none");
+                    inputOutra.disabled = false;
+                    inputOutra.required = true;
+                } else {
+                    select.setAttribute("name", `Linguas[${index}].Lingua`);
+                    inputOutra.removeAttribute("name");
+                    inputOutra.classList.add("d-none");
+                    inputOutra.disabled = true;
+                    inputOutra.required = false;
+                }
+            };
+
+            window.removerLingua = function(rowId) {
+                const row = document.getElementById(rowId);
+                if (row) row.remove();
+                if (container && container.children.length === 0 && emptyState) {
+                    emptyState.style.display = 'block';
+                }
+            };
+
+            window.validarFormulario = function() {
+                const u1 = document.getElementById("uni1").value;
+                const u2 = document.getElementById("uni2").value;
+                const u3 = document.getElementById("uni3").value;
+                const escolhas = [u1, u2, u3].filter(val => val !== ""); 
+                const escolhasNormalizadas = escolhas.map(val => isOutraUniversidade(val) ? "__OUTRA__" : val);
+                const escolhasUnicas = new Set(escolhasNormalizadas); 
+
+                if (escolhasNormalizadas.length !== escolhasUnicas.size) {
+                    alert("⛔ ATENÇÃO: Escolheste a mesma universidade de destino mais do que uma vez!\n\nPor favor, escolhe destinos diferentes.");
+                    return false;
+                }
+
+                const opcoesOutra = [
+                    { selectId: 'uni1', inputId: 'uni1Other', label: '1ª opção' },
+                    { selectId: 'uni2', inputId: 'uni2Other', label: '2ª opção' },
+                    { selectId: 'uni3', inputId: 'uni3Other', label: '3ª option' }
+                ];
+
+                for (const opcao of opcoesOutra) {
+                    const select = document.getElementById(opcao.selectId);
+                    const input = document.getElementById(opcao.inputId);
+                    if (select && isOutraUniversidade(select.value) && input && !input.value.trim()) {
+                        alert(`⛔ ATENÇÃO: Escolheste 'Outra' na ${opcao.label}, mas não escreveste o nome da universidade.`);
+                        input.focus();
+                        return false;
+                    }
+                }
+
+                const elementosLinguas = document.querySelectorAll("[name$='.Lingua']");
+                const linguasEscolhidas = [];
+                for (let i = 0; i < elementosLinguas.length; i++) {
+                    const lingua = elementosLinguas[i].value.trim().toLowerCase();
+                    if (lingua) {
+                        if (linguasEscolhidas.includes(lingua)) {
+                            alert("⛔ ATENÇÃO: Adicionaste a mesma língua mais do que uma vez!\n\nPor favor, remove a linha repetida antes de submeteres a candidatura.");
+                            return false;
+                        }
+                        linguasEscolhidas.push(lingua);
+                    }
+                }
+                return true;
+            };
+
+            // Documentos
+            function configurarLinhaDocumento(row) {
+                const categoria = row.querySelector(".categoria-documento");
+                const descricaoWrapper = row.querySelector(".descricao-outro-wrapper");
+                const descricao = row.querySelector(".descricao-documento");
+                const remover = row.querySelector(".remover-documento");
+
+                function atualizarDescricaoOutro() {
+                    if (categoria.value === "Outro") {
+                        descricaoWrapper.classList.remove("d-none");
+                        descricao.required = true;
+                    } else {
+                        descricaoWrapper.classList.add("d-none");
+                        descricao.required = false;
+                        descricao.value = "";
+                    }
+                }
+
+                categoria.addEventListener("change", atualizarDescricaoOutro);
+
+                if (remover) {
+                    remover.addEventListener("click", function () {
+                        row.remove();
+                        atualizarBotoesRemover();
+                    });
+                }
+                atualizarDescricaoOutro();
+            }
+
+            function atualizarBotoesRemover() {
+                const linhas = document.querySelectorAll(".documento-row");
+                linhas.forEach((linha, index) => {
+                    const botao = linha.querySelector(".remover-documento");
+                    if (!botao) return;
+
+                    if (linhas.length > 1) {
+                        botao.classList.remove("d-none");
+                    } else {
+                        botao.classList.add("d-none");
+                    }
+                });
+            }
+
+            const containerDocs = document.getElementById("documentosContainer");
+            const botaoAdicionarDoc = document.getElementById("adicionarDocumento");
+
+            if (containerDocs && botaoAdicionarDoc) {
+                containerDocs.querySelectorAll(".documento-row").forEach(configurarLinhaDocumento);
+                atualizarBotoesRemover();
+
+                botaoAdicionarDoc.addEventListener("click", function () {
+                    const primeiraLinha = containerDocs.querySelector(".documento-row");
+                    const novaLinha = primeiraLinha.cloneNode(true);
+
+                    novaLinha.querySelectorAll("input").forEach(input => {
+                        input.value = "";
+                        input.required = false;
+                    });
+
+                    novaLinha.querySelectorAll("select").forEach(select => {
+                        select.value = "";
+                    });
+
+                    const descricaoWrapper = novaLinha.querySelector(".descricao-outro-wrapper");
+                    if (descricaoWrapper) {
+                        descricaoWrapper.classList.add("d-none");
+                    }
+
+                    containerDocs.appendChild(novaLinha);
+                    configurarLinhaDocumento(novaLinha);
+                    atualizarBotoesRemover();
+                });
+            }
+
+        // MECANISMO DE FIXAÇÃO DAS UNIVERSIDADES EM CASO DE ERRO
+        setTimeout(function() {
+        if (appConfig.uni1Selecionada) {
+        $('select[name="universidade1"]').val(appConfig.uni1Selecionada).trigger('change.select2');
+        }
+        if (appConfig.uni2Selecionada) {
+        $('select[name="universidade2"]').val(appConfig.uni2Selecionada).trigger('change.select2');
+        }
+        if (appConfig.uni3Selecionada) {
+        $('select[name="universidade3"]').val(appConfig.uni3Selecionada).trigger('change.select2');
+        }
+
+        // Repovoar caixas de "Outra" caso existam valores na ViewBag
+        var outra1 = '@(ViewBag.Uni1Other ?? "")';
+        var outra2 = '@(ViewBag.Uni2Other ?? "")';
+        var outra3 = '@(ViewBag.Uni3Other ?? "")';
+
+        if (outra1) { $('#uni1Other').val(outra1).removeClass('d-none').prop('disabled', false).prop('required', true); }
+        if (outra2) { $('#uni2Other').val(outra2).removeClass('d-none').prop('disabled', false).prop('required', true); }
+        if (outra3) { $('#uni3Other').val(outra3).removeClass('d-none').prop('disabled', false).prop('required', true); }
+        }, 150);
+        // FIM DO MECANISMO DE FIXAÇÃO
+        });
+    </script>
+}

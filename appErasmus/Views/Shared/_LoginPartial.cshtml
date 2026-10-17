@@ -1,0 +1,46 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using appErasmus.Models
+@inject SignInManager<Utilizador> SignInManager
+@inject UserManager<Utilizador> UserManager
+
+<ul class="navbar-nav flex-row align-items-center mb-0 p-0">
+    @if (SignInManager.IsSignedIn(User)) {
+        // 1. Vai buscar o objeto completo do utilizador à base de dados
+        var currentUser = await UserManager.GetUserAsync(User);
+
+        // 2. Se o NomeCompleto existir e não for vazio, usa-o.
+        // Caso contrário (plano de segurança), faz o split ao email como tinhas antes.
+        var nomeExibicao = !string.IsNullOrWhiteSpace(currentUser?.NomeCompleto)
+                            ? currentUser.NomeCompleto
+                            : User.Identity?.Name?.Split('@')[0];
+
+        <li class="nav-item me-3">
+            @if (User.IsInRole("Admin")) {
+                <!-- Admin: Apenas texto (span), sem hiperligação e sem o efeito do rato (cursor: default) -->
+                <span class="nav-link fw-bold mb-0" style="cursor: default;">
+                    Olá, @nomeExibicao!
+                </span>
+            }
+            else {
+                <!-- Outros Utilizadores: Link normal para a gestão de perfil -->
+                <a class="nav-link fw-bold" asp-area="Identity" asp-page="/Account/Manage/Index" title="Gerir Perfil">
+                    Olá, @nomeExibicao!
+                </a>
+            }
+        </li>
+        <li class="nav-item">
+            <form class="form-inline m-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="btn btn-outline-danger d-flex align-items-center shadow-sm">
+                    <i class="bi bi-box-arrow-right me-2"></i> Sair
+                </button>
+            </form>
+        </li>
+    }
+    else {
+        <li class="nav-item">
+            <a class="btn btn-primary d-flex align-items-center text-white shadow-sm" asp-area="Identity" asp-page="/Account/Login">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Login
+            </a>
+        </li>
+    }
+</ul>
